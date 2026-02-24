@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет участника - Школа финансовой культуры</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <script src="../js/icons.js"></script>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">ШФК</div>
+                    <span class="logo-text">Школа финансовой культуры</span>
+                </div>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li><a href="../index.html" class="nav-link">Главная</a></li>
+                        <li><a href="events.html" class="nav-link">Мероприятия</a></li>
+                        <li><a href="dashboard-participant.html" class="nav-link active">Личный кабинет</a></li>
+                    </ul>
+                </nav>
+                <div class="user-menu">
+                    <div class="user-avatar-sm" aria-hidden="true">ИИ</div>
+                    <span class="user-name">Иванов Иван</span>
+                    <button class="btn-logout" onclick="logout()">Выход</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-avatar">ИИ</div>
+                <h3>Иванов Иван</h3>
+                <p class="user-role">Участник</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#overview" class="sidebar-link active" onclick="showTab('overview')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-chart-bar"></use></svg> Обзор
+                </a>
+                <a href="#my-events" class="sidebar-link" onclick="showTab('my-events')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-calendar"></use></svg> Мои мероприятия
+                </a>
+                <a href="#results" class="sidebar-link" onclick="showTab('results')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-trophy"></use></svg> Результаты
+                </a>
+                <a href="#submissions" class="sidebar-link" onclick="showTab('submissions')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-upload"></use></svg> Мои работы
+                </a>
+                <a href="#profile" class="sidebar-link" onclick="showTab('profile')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-settings"></use></svg> Профиль
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="dashboard-header">
+                    <h1>Обзор</h1>
+                    <p>Добро пожаловать в личный кабинет!</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #dbeafe; color: #1e40af;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-calendar"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>5</h3>
+                            <p>Активных мероприятий</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fef3c7; color: #d97706;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-trophy"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>3</h3>
+                            <p>Призовых места</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #d1fae5; color: #065f46;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-check-circle"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>12</h3>
+                            <p>Завершенных работ</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fce7f3; color: #9f1239;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-clock"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>2</h3>
+                            <p>На проверке</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-grid">
+                    <div class="section-card">
+                        <h2>Ближайшие мероприятия</h2>
+                        <div class="event-list">
+                            <div class="event-item">
+                                <div class="event-badge status-active">Активно</div>
+                                <h4>Олимпиада по финансовой грамотности</h4>
+                                <p>Дедлайн: 15 марта 2026</p>
+                                <button class="btn-small btn-primary" onclick="goToEvent(1)">Перейти к заданиям</button>
+                            </div>
+                            
+                            <div class="event-item">
+                                <div class="event-badge status-soon">Скоро</div>
+                                <h4>Конкурс финансовых проектов</h4>
+                                <p>Начало: 20 марта 2026</p>
+                                <button class="btn-small btn-outline">Подробнее</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-card">
+                        <h2>Последние результаты</h2>
+                        <div class="results-list">
+                            <div class="result-item">
+                                <div class="result-badge badge-gold"><svg class="icon" aria-hidden="true"><use href="#ic-medal"></use></svg> 1 место</div>
+                                <h4>Викторина «Деньги и экономика»</h4>
+                                <p>95 баллов из 100</p>
+                                <p class="result-date">10 февраля 2026</p>
+                            </div>
+                            
+                            <div class="result-item">
+                                <div class="result-badge badge-silver"><svg class="icon" aria-hidden="true"><use href="#ic-medal"></use></svg> 2 место</div>
+                                <h4>Олимпиада «Основы инвестирования»</h4>
+                                <p>87 баллов из 100</p>
+                                <p class="result-date">5 февраля 2026</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <h2>Уведомления</h2>
+                    <div class="notifications-list">
+                        <div class="notification-item unread">
+                            <span class="notif-icon"><svg class="icon icon-md" aria-hidden="true"><use href="#ic-mail"></use></svg></span>
+                            <div>
+                                <h4>Получены результаты проверки</h4>
+                                <p>Ваша работа по олимпиаде проверена. Оценка: 92 балла</p>
+                                <span class="notif-time">2 часа назад</span>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-item">
+                            <span class="notif-icon"><svg class="icon icon-md" aria-hidden="true"><use href="#ic-clock"></use></svg></span>
+                            <div>
+                                <h4>Напоминание о дедлайне</h4>
+                                <p>До окончания приема работ осталось 3 дня</p>
+                                <span class="notif-time">1 день назад</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Events Tab -->
+            <div id="my-events" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Мои мероприятия</h1>
+                    <button class="btn btn-primary" onclick="window.location.href='events.html'">+ Найти мероприятие</button>
+                </div>
+
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="filterEvents('all')">Все (7)</button>
+                    <button class="filter-tab" onclick="filterEvents('active')">Активные (5)</button>
+                    <button class="filter-tab" onclick="filterEvents('completed')">Завершенные (2)</button>
+                </div>
+
+                <div class="events-table">
+                    <div class="event-row" data-status="active">
+                        <div class="event-info">
+                            <div class="event-badge status-active">Активно</div>
+                            <h3>Олимпиада по финансовой грамотности</h3>
+                            <p>Зарегистрирован: 1 марта 2026</p>
+                        </div>
+                        <div class="event-progress">
+                            <p>Прогресс</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 60%;"></div>
+                            </div>
+                            <span>60% (3 из 5 заданий)</span>
+                        </div>
+                        <div class="event-deadline">
+                            <p>Дедлайн</p>
+                            <span class="deadline-date">15 марта 2026</span>
+                            <span class="deadline-time">Осталось 5 дней</span>
+                        </div>
+                        <div class="event-actions">
+                            <button class="btn-small btn-primary">Продолжить</button>
+                        </div>
+                    </div>
+
+                    <div class="event-row" data-status="active">
+                        <div class="event-info">
+                            <div class="event-badge status-pending">Ожидание</div>
+                            <h3>Конкурс финансовых проектов</h3>
+                            <p>Зарегистрирован: 5 марта 2026</p>
+                        </div>
+                        <div class="event-progress">
+                            <p>Статус</p>
+                            <span>Работа загружена</span>
+                            <span class="status-text">На проверке у жюри</span>
+                        </div>
+                        <div class="event-deadline">
+                            <p>Дата загрузки</p>
+                            <span class="deadline-date">8 марта 2026</span>
+                        </div>
+                        <div class="event-actions">
+                            <button class="btn-small btn-outline">Просмотр</button>
+                        </div>
+                    </div>
+
+                    <div class="event-row" data-status="completed">
+                        <div class="event-info">
+                            <div class="event-badge status-completed">Завершено</div>
+                            <h3>Викторина «Деньги и экономика»</h3>
+                            <p>Участие: 10 февраля 2026</p>
+                        </div>
+                        <div class="event-progress">
+                            <p>Результат</p>
+                            <div class="result-badge badge-gold"><svg class="icon" aria-hidden="true"><use href="#ic-medal"></use></svg> 1 место</div>
+                            <span>95 баллов из 100</span>
+                        </div>
+                        <div class="event-deadline">
+                            <p>Награда</p>
+                            <span>Диплом I степени</span>
+                        </div>
+                        <div class="event-actions">
+                            <button class="btn-small btn-outline">Подробнее</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Tab -->
+            <div id="results" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Результаты</h1>
+                    <p>История участия и достижения</p>
+                </div>
+
+                <div class="achievements-section">
+                    <h2>Достижения</h2>
+                    <div class="achievements-grid">
+                        <div class="achievement-card gold">
+                            <div class="achievement-icon">
+                                <svg class="icon" aria-hidden="true"><use href="#ic-medal"></use></svg>
+                            </div>
+                            <h3>3</h3>
+                            <p>Первых мест</p>
+                        </div>
+                        <div class="achievement-card silver">
+                            <div class="achievement-icon">
+                                <svg class="icon" aria-hidden="true"><use href="#ic-medal"></use></svg>
+                            </div>
+                            <h3>2</h3>
+                            <p>Вторых мест</p>
+                        </div>
+                        <div class="achievement-card bronze">
+                            <div class="achievement-icon">
+                                <svg class="icon" aria-hidden="true"><use href="#ic-medal"></use></svg>
+                            </div>
+                            <h3>1</h3>
+                            <p>Третье место</p>
+                        </div>
+                        <div class="achievement-card">
+                            <div class="achievement-icon" style="color: var(--primary-blue);">
+                                <svg class="icon" aria-hidden="true"><use href="#ic-award"></use></svg>
+                            </div>
+                            <h3>12</h3>
+                            <p>Сертификатов</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-detailed">
+                    <h2>Детальные результаты</h2>
+                    <div class="result-card">
+                        <div class="result-header">
+                            <h3>Викторина «Деньги и экономика»</h3>
+                            <div class="result-badge badge-gold"><svg class="icon" aria-hidden="true"><use href="#ic-medal"></use></svg> 1 место</div>
+                        </div>
+                        <div class="result-body">
+                            <div class="result-score">
+                                <span class="score-big">95</span>
+                                <span class="score-max">из 100</span>
+                            </div>
+                            <div class="result-details">
+                                <p><strong>Дата:</strong> 10 февраля 2026</p>
+                                <p><strong>Время выполнения:</strong> 45 минут</p>
+                                <p><strong>Правильных ответов:</strong> 19 из 20</p>
+                            </div>
+                        </div>
+                        <div class="result-feedback">
+                            <h4>Комментарий жюри:</h4>
+                            <p>Отличная работа! Продемонстрированы глубокие знания в области финансовой грамотности. Особенно хорошо раскрыты вопросы по инвестированию и управлению рисками.</p>
+                        </div>
+                        <button class="btn-outline">Скачать диплом</button>
+                    </div>
+
+                    <div class="result-card">
+                        <div class="result-header">
+                            <h3>Олимпиада «Основы инвестирования»</h3>
+                            <div class="result-badge badge-silver"><svg class="icon" aria-hidden="true"><use href="#ic-medal"></use></svg> 2 место</div>
+                        </div>
+                        <div class="result-body">
+                            <div class="result-score">
+                                <span class="score-big">87</span>
+                                <span class="score-max">из 100</span>
+                            </div>
+                            <div class="result-details">
+                                <p><strong>Дата:</strong> 5 февраля 2026</p>
+                                <p><strong>Время выполнения:</strong> 60 минут</p>
+                                <p><strong>Правильных ответов:</strong> 26 из 30</p>
+                            </div>
+                        </div>
+                        <div class="result-feedback">
+                            <h4>Комментарий жюри:</h4>
+                            <p>Хороший результат. Рекомендуется углубить знания по теме диверсификации портфеля и оценке финансовых инструментов.</p>
+                        </div>
+                        <button class="btn-outline">Скачать диплом</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submissions Tab -->
+            <div id="submissions" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Мои работы</h1>
+                    <p>Загруженные файлы и ответы</p>
+                </div>
+
+                <div class="submissions-list">
+                    <div class="submission-card">
+                        <div class="submission-header">
+                            <h3>Конкурс финансовых проектов</h3>
+                            <div class="event-badge status-pending">На проверке</div>
+                        </div>
+                        <div class="submission-info">
+                            <p><strong>Дата загрузки:</strong> 8 марта 2026, 15:30</p>
+                            <p><strong>Формат:</strong> PDF документ</p>
+                        </div>
+                        <div class="submission-files">
+                            <div class="file-item">
+                                <span class="file-icon"><svg class="icon" aria-hidden="true"><use href="#ic-file"></use></svg></span>
+                                <div class="file-info">
+                                    <p class="file-name">Финансовый_проект_Иванов.pdf</p>
+                                    <p class="file-size">2.4 МБ</p>
+                                </div>
+                                <button class="btn-icon" onclick="downloadFile('project.pdf')" aria-label="Скачать"><svg class="icon" aria-hidden="true"><use href="#ic-download"></use></svg></button>
+                            </div>
+                        </div>
+                        <div class="submission-status">
+                            <p>Статус: Ожидает проверки жюри</p>
+                            <p class="status-note">Результаты будут доступны до 20 марта 2026</p>
+                        </div>
+                    </div>
+
+                    <div class="submission-card checked">
+                        <div class="submission-header">
+                            <h3>Олимпиада по финансовой грамотности</h3>
+                            <div class="event-badge status-completed">Проверено</div>
+                        </div>
+                        <div class="submission-info">
+                            <p><strong>Дата выполнения:</strong> 2 марта 2026, 14:20</p>
+                            <p><strong>Формат:</strong> Онлайн-тест</p>
+                        </div>
+                        <div class="submission-result">
+                            <div class="score-display">
+                                <span class="score">92</span>
+                                <span class="max-score">/ 100</span>
+                            </div>
+                            <button class="btn-outline">Просмотреть ответы</button>
+                        </div>
+                        <div class="submission-feedback">
+                            <h4>Обратная связь:</h4>
+                            <p>Хорошее понимание материала. Небольшие ошибки в задачах по расчету процентов.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="profile" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Профиль</h1>
+                    <p>Личная информация и настройки</p>
+                </div>
+
+                <div class="profile-section">
+                    <h2>Личные данные</h2>
+                    <form class="profile-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Фамилия</label>
+                                <input type="text" value="Иванов" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Имя</label>
+                                <input type="text" value="Иван" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Отчество</label>
+                                <input type="text" value="Иванович" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" value="ivanov@email.com" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Телефон</label>
+                                <input type="tel" value="+7 (999) 123-45-67" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Учебное заведение</label>
+                                <input type="text" value="МБОУ СОШ №15" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Класс</label>
+                                <input type="text" value="11" class="form-input">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    </form>
+                </div>
+
+                <div class="profile-section">
+                    <h2>Настройки уведомлений</h2>
+                    <div class="settings-list">
+                        <div class="setting-item">
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <div class="setting-info">
+                                <h4>Email-уведомления о новых мероприятиях</h4>
+                                <p>Получать информацию о предстоящих олимпиадах и конкурсах</p>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <div class="setting-info">
+                                <h4>Напоминания о дедлайнах</h4>
+                                <p>Уведомления за 3 дня до окончания приема работ</p>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <label class="switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <div class="setting-info">
+                                <h4>Результаты проверки</h4>
+                                <p>Получать уведомления о готовых результатах</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script src="../js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контакты - Школа финансовой культуры</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <script src="../js/icons.js"></script>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">ШФК</div>
+                    <span class="logo-text">Школа финансовой культуры</span>
+                </div>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li><a href="../index.html" class="nav-link">Главная</a></li>
+                        <li><a href="about.html" class="nav-link">О школе</a></li>
+                        <li><a href="events.html" class="nav-link">Мероприятия</a></li>
+                        <li><a href="documents.html" class="nav-link">Документы</a></li>
+                        <li><a href="contacts.html" class="nav-link active">Контакты</a></li>
+                    </ul>
+                </nav>
+                <button class="btn-login" onclick="window.location.href='auth.html'">Войти</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Hero -->
+    <section class="hero" style="padding: 60px 0;">
+        <div class="container">
+            <h1 class="hero-title" style="font-size: 42px;">Контакты</h1>
+            <p class="hero-subtitle">Свяжитесь с нами по любым вопросам</p>
+        </div>
+    </section>
+
+    <!-- Contact Info -->
+    <section class="section section-light">
+        <div class="container">
+            <div class="events-grid">
+                <div class="event-card" style="text-align: center;">
+                    <div class="contact-icon" style="background: #dbeafe;">
+                        <svg class="icon" aria-hidden="true"><use href="#ic-mail"></use></svg>
+                    </div>
+                    <h3 style="color: var(--primary-dark); margin-bottom: 10px;">Email</h3>
+                    <p style="color: var(--primary-blue); font-size: 16px;">info@finschool.ru</p>
+                    <p style="color: var(--text-gray); font-size: 14px; margin-top: 10px;">Ответим в течение 24 часов</p>
+                </div>
+
+                <div class="event-card" style="text-align: center;">
+                    <div class="contact-icon" style="background: #d1fae5;">
+                        <svg class="icon" aria-hidden="true"><use href="#ic-phone"></use></svg>
+                    </div>
+                    <h3 style="color: var(--primary-dark); margin-bottom: 10px;">Телефон</h3>
+                    <p style="color: var(--primary-blue); font-size: 16px;">+7 (999) 123-45-67</p>
+                    <p style="color: var(--text-gray); font-size: 14px; margin-top: 10px;">Пн-Пт с 9:00 до 18:00 МСК</p>
+                </div>
+
+                <div class="event-card" style="text-align: center;">
+                    <div class="contact-icon" style="background: #fce7f3;">
+                        <svg class="icon" aria-hidden="true"><use href="#ic-chat"></use></svg>
+                    </div>
+                    <h3 style="color: var(--primary-dark); margin-bottom: 10px;">Поддержка</h3>
+                    <p style="color: var(--primary-blue); font-size: 16px;">support@finschool.ru</p>
+                    <p style="color: var(--text-gray); font-size: 14px; margin-top: 10px;">Техническая поддержка 24/7</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Form -->
+    <section class="section">
+        <div class="container">
+            <div style="max-width: 700px; margin: 0 auto;">
+                <h2 class="section-title">Напишите нам</h2>
+                <form id="contactForm" style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; color: var(--text-dark); font-weight: 500;">Имя *</label>
+                        <input type="text" required style="width: 100%; padding: 12px; border: 2px solid var(--light-gray); border-radius: 8px; font-size: 15px;">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; color: var(--text-dark); font-weight: 500;">Email *</label>
+                        <input type="email" required style="width: 100%; padding: 12px; border: 2px solid var(--light-gray); border-radius: 8px; font-size: 15px;">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; color: var(--text-dark); font-weight: 500;">Тема обращения *</label>
+                        <select required style="width: 100%; padding: 12px; border: 2px solid var(--light-gray); border-radius: 8px; font-size: 15px;">
+                            <option value="">Выберите тему</option>
+                            <option value="general">Общие вопросы</option>
+                            <option value="registration">Регистрация на мероприятие</option>
+                            <option value="technical">Техническая поддержка</option>
+                            <option value="cooperation">Сотрудничество</option>
+                            <option value="other">Другое</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; color: var(--text-dark); font-weight: 500;">Сообщение *</label>
+                        <textarea required rows="6" style="width: 100%; padding: 12px; border: 2px solid var(--light-gray); border-radius: 8px; font-size: 15px; resize: vertical;"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">Отправить сообщение</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="section section-light">
+        <div class="container">
+            <h2 class="section-title">Часто задаваемые вопросы</h2>
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div class="event-card" style="margin-bottom: 20px;">
+                    <h3 style="color: var(--primary-dark); margin-bottom: 10px;">Как зарегистрироваться на мероприятие?</h3>
+                    <p>Для регистрации необходимо создать учетную запись на платформе, перейти на страницу интересующего мероприятия и нажать кнопку "Зарегистрироваться".</p>
+                </div>
+                
+                <div class="event-card" style="margin-bottom: 20px;">
+                    <h3 style="color: var(--primary-dark); margin-bottom: 10px;">Могу ли я участвовать в нескольких мероприятиях?</h3>
+                    <p>Да, вы можете зарегистрироваться и принять участие в любом количестве мероприятий, если они не пересекаются по времени.</p>
+                </div>
+                
+                <div class="event-card" style="margin-bottom: 20px;">
+                    <h3 style="color: var(--primary-dark); margin-bottom: 10px;">Как я узнаю свои результаты?</h3>
+                    <p>Результаты публикуются в личном кабинете участника. Вы также получите уведомление на email, указанный при регистрации.</p>
+                </div>
+                
+                <div class="event-card">
+                    <h3 style="color: var(--primary-dark); margin-bottom: 10px;">Нужна ли оплата для участия?</h3>
+                    <p>Все мероприятия на платформе абсолютно бесплатны для участников.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h4>О проекте</h4>
+                    <ul class="footer-links">
+                        <li><a href="about.html">О школе</a></li>
+                        <li><a href="documents.html">Документы</a></li>
+                        <li><a href="contacts.html">Контакты</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Мероприятия</h4>
+                    <ul class="footer-links">
+                        <li><a href="events.html">Все мероприятия</a></li>
+                        <li><a href="events.html?type=olympiad">Олимпиады</a></li>
+                        <li><a href="events.html?type=competition">Конкурсы</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Личный кабинет</h4>
+                    <ul class="footer-links">
+                        <li><a href="auth.html">Вход</a></li>
+                        <li><a href="auth.html">Регистрация</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Контакты</h4>
+                    <p>Email: info@finschool.ru</p>
+                    <p>Телефон: +7 (999) 123-45-67</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Школа финансовой культуры. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/script.js"></script>
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showNotification('Ваше сообщение отправлено! Мы свяжемся с вами в ближайшее время.', 'success');
+            this.reset();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кабинет жюри - Школа финансовой культуры</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <script src="../js/icons.js"></script>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">ШФК</div>
+                    <span class="logo-text">Школа финансовой культуры</span>
+                </div>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li><a href="../index.html" class="nav-link">Главная</a></li>
+                        <li><a href="dashboard-jury.html" class="nav-link active">Кабинет жюри</a></li>
+                    </ul>
+                </nav>
+                <div class="user-menu">
+                    <div class="user-avatar-sm" aria-hidden="true">СП</div>
+                    <span class="user-name">Сидоров Петр Иванович</span>
+                    <button class="btn-logout" onclick="logout()">Выход</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-avatar">СП</div>
+                <h3>Сидоров П.И.</h3>
+                <p class="user-role">Член жюри</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#overview" class="sidebar-link active" onclick="showTab('overview')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-chart-bar"></use></svg> Обзор
+                </a>
+                <a href="#my-works" class="sidebar-link" onclick="showTab('my-works')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-clipboard"></use></svg> Назначенные работы
+                </a>
+                <a href="#checking" class="sidebar-link" onclick="showTab('checking')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-pen"></use></svg> Проверка работ
+                </a>
+                <a href="#checked" class="sidebar-link" onclick="showTab('checked')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-check-circle"></use></svg> Проверенные
+                </a>
+                <a href="#profile" class="sidebar-link" onclick="showTab('profile')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-settings"></use></svg> Профиль
+                </a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="dashboard-header">
+                    <div>
+                        <h1>Кабинет жюри</h1>
+                        <p>Проверка работ участников</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fef3c7; color: #92400e;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-clipboard"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>15</h3>
+                            <p>Ожидают проверки</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #dbeafe; color: #1e40af;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-pen"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>3</h3>
+                            <p>В процессе</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #d1fae5; color: #065f46;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-check-circle"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>42</h3>
+                            <p>Проверено</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fce7f3; color: #9f1239;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-calendar"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>5</h3>
+                            <p>Мероприятий</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <h2>Срочные работы</h2>
+                    <div class="urgent-works">
+                        <div class="work-item urgent">
+                            <div class="work-header">
+                                <h4>Олимпиада по финансовой грамотности</h4>
+                                <span class="deadline-badge" style="background: #fee2e2; color: #991b1b;">Дедлайн: сегодня</span>
+                            </div>
+                            <p>5 работ требуют проверки</p>
+                            <button class="btn-small btn-primary" onclick="showTab('my-works')">Перейти к проверке</button>
+                        </div>
+                        
+                        <div class="work-item">
+                            <div class="work-header">
+                                <h4>Конкурс финансовых проектов</h4>
+                                <span class="deadline-badge">Дедлайн: 2 дня</span>
+                            </div>
+                            <p>8 работ требуют проверки</p>
+                            <button class="btn-small btn-outline" onclick="showTab('my-works')">Перейти к проверке</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card" style="margin-top: 30px;">
+                    <h2>Последние проверенные работы</h2>
+                    <div class="recent-checks">
+                        <div class="check-item">
+                            <div class="check-info">
+                                <h4>Иванов Иван - Олимпиада по финансовой грамотности</h4>
+                                <p>Проверено: 13 февраля 2026, 14:30</p>
+                            </div>
+                            <div class="check-score">
+                                <span class="score-big">92</span>
+                                <span class="score-label">/100</span>
+                            </div>
+                        </div>
+                        
+                        <div class="check-item">
+                            <div class="check-info">
+                                <h4>Смирнова Анна - Конкурс финансовых проектов</h4>
+                                <p>Проверено: 13 февраля 2026, 12:15</p>
+                            </div>
+                            <div class="check-score">
+                                <span class="score-big">87</span>
+                                <span class="score-label">/100</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Works Tab -->
+            <div id="my-works" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Назначенные работы</h1>
+                    <div>
+                        <select style="padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; margin-right: 10px;">
+                            <option>Все мероприятия</option>
+                            <option>Олимпиада по финансовой грамотности</option>
+                            <option>Конкурс финансовых проектов</option>
+                        </select>
+                        <select style="padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                            <option>Все статусы</option>
+                            <option>Ожидают проверки</option>
+                            <option>В процессе</option>
+                            <option>Проверено</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="works-grid">
+                    <div class="work-card">
+                        <div class="work-header">
+                            <div>
+                                <h3>Иванов Иван Иванович</h3>
+                                <p>Олимпиада по финансовой грамотности</p>
+                            </div>
+                            <div class="work-badge status-pending">Ожидает проверки</div>
+                        </div>
+                        
+                        <div class="work-info">
+                            <p><strong>Дата отправки:</strong> 12 февраля 2026, 15:30</p>
+                            <p><strong>Формат:</strong> Онлайн-тест (20 вопросов)</p>
+                            <p><strong>Время выполнения:</strong> 48 минут</p>
+                        </div>
+
+                        <div class="work-files">
+                            <div class="file-item">
+                                <span class="file-icon"><svg class="icon" aria-hidden="true"><use href="#ic-file"></use></svg></span>
+                                <div class="file-info">
+                                    <p class="file-name">Ответы на вопросы</p>
+                                    <p class="file-size">Онлайн-форма</p>
+                                </div>
+                                <button class="btn-icon" onclick="viewWork('answers')" aria-label="Просмотреть"><svg class="icon" aria-hidden="true"><use href="#ic-eye"></use></svg></button>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="showTab('checking')">Начать проверку</button>
+                    </div>
+
+                    <div class="work-card">
+                        <div class="work-header">
+                            <div>
+                                <h3>Смирнова Анна Петровна</h3>
+                                <p>Конкурс финансовых проектов</p>
+                            </div>
+                            <div class="work-badge status-pending">Ожидает проверки</div>
+                        </div>
+                        
+                        <div class="work-info">
+                            <p><strong>Дата отправки:</strong> 11 февраля 2026, 18:45</p>
+                            <p><strong>Формат:</strong> PDF документ</p>
+                            <p><strong>Название:</strong> «Финансовая грамотность в школе»</p>
+                        </div>
+
+                        <div class="work-files">
+                            <div class="file-item">
+                                <span class="file-icon"><svg class="icon" aria-hidden="true"><use href="#ic-file"></use></svg></span>
+                                <div class="file-info">
+                                    <p class="file-name">Smirnova_Project.pdf</p>
+                                    <p class="file-size">2.8 МБ</p>
+                                </div>
+                                <button class="btn-icon" onclick="viewWork('Smirnova_Project.pdf')" aria-label="Просмотреть"><svg class="icon" aria-hidden="true"><use href="#ic-eye"></use></svg></button>
+                                <button class="btn-icon" onclick="downloadFile('Smirnova_Project.pdf')" aria-label="Скачать"><svg class="icon" aria-hidden="true"><use href="#ic-download"></use></svg></button>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="showTab('checking')">Начать проверку</button>
+                    </div>
+
+                    <div class="work-card">
+                        <div class="work-header">
+                            <div>
+                                <h3>Кузнецов Дмитрий Сергеевич</h3>
+                                <p>Олимпиада по финансовой грамотности</p>
+                            </div>
+                            <div class="work-badge status-pending">Ожидает проверки</div>
+                        </div>
+                        
+                        <div class="work-info">
+                            <p><strong>Дата отправки:</strong> 10 февраля 2026, 20:15</p>
+                            <p><strong>Формат:</strong> Онлайн-тест (20 вопросов)</p>
+                            <p><strong>Время выполнения:</strong> 52 минуты</p>
+                        </div>
+
+                        <div class="work-files">
+                            <div class="file-item">
+                                <span class="file-icon"><svg class="icon" aria-hidden="true"><use href="#ic-file"></use></svg></span>
+                                <div class="file-info">
+                                    <p class="file-name">Ответы на вопросы</p>
+                                    <p class="file-size">Онлайн-форма</p>
+                                </div>
+                                <button class="btn-icon" onclick="viewWork('answers')" aria-label="Просмотреть"><svg class="icon" aria-hidden="true"><use href="#ic-eye"></use></svg></button>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="showTab('checking')">Начать проверку</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Checking Tab -->
+            <div id="checking" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Проверка работы</h1>
+                    <button class="btn btn-outline" onclick="showTab('my-works')">← Назад к списку</button>
+                </div>
+
+                <div class="checking-workspace">
+                    <div class="work-preview">
+                        <h2>Работа участника</h2>
+                        <div class="participant-info">
+                            <h3>Иванов Иван Иванович</h3>
+                            <p>Олимпиада по финансовой грамотности</p>
+                            <p>Дата отправки: 12 февраля 2026, 15:30</p>
+                        </div>
+
+                        <div class="work-content">
+                            <h4>Ответы на вопросы:</h4>
+                            <div class="answer-item">
+                                <div class="question">
+                                    <strong>Вопрос 1:</strong> Что такое инфляция и как она влияет на покупательную способность денег?
+                                </div>
+                                <div class="answer">
+                                    <strong>Ответ:</strong> Инфляция - это рост общего уровня цен на товары и услуги в экономике. При инфляции покупательная способность денег снижается, так как на ту же сумму можно купить меньше товаров...
+                                </div>
+                                <div class="answer-score">
+                                    <label>Баллы за вопрос:</label>
+                                    <input type="number" min="0" max="5" value="5" style="width: 80px; padding: 8px; border: 2px solid #e5e7eb; border-radius: 6px;">
+                                    <span>/5</span>
+                                </div>
+                            </div>
+
+                            <div class="answer-item">
+                                <div class="question">
+                                    <strong>Вопрос 2:</strong> Объясните разницу между дебетовой и кредитной картой.
+                                </div>
+                                <div class="answer">
+                                    <strong>Ответ:</strong> Дебетовая карта позволяет использовать собственные средства, находящиеся на счете. Кредитная карта предоставляет возможность использовать заемные средства банка...
+                                </div>
+                                <div class="answer-score">
+                                    <label>Баллы за вопрос:</label>
+                                    <input type="number" min="0" max="5" value="4" style="width: 80px; padding: 8px; border: 2px solid #e5e7eb; border-radius: 6px;">
+                                    <span>/5</span>
+                                </div>
+                            </div>
+
+                            <div class="answer-item">
+                                <div class="question">
+                                    <strong>Вопрос 3:</strong> Что такое диверсификация инвестиционного портфеля?
+                                </div>
+                                <div class="answer">
+                                    <strong>Ответ:</strong> Диверсификация - это распределение инвестиций между различными активами для снижения рисков...
+                                </div>
+                                <div class="answer-score">
+                                    <label>Баллы за вопрос:</label>
+                                    <input type="number" min="0" max="5" value="5" style="width: 80px; padding: 8px; border: 2px solid #e5e7eb; border-radius: 6px;">
+                                    <span>/5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grading-panel">
+                        <h2>Оценка работы</h2>
+                        
+                        <div class="total-score">
+                            <label>Итоговая оценка:</label>
+                            <input type="number" id="grade-1" min="0" max="100" placeholder="0" 
+                                   style="width: 100px; padding: 12px; font-size: 18px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center;">
+                            <span style="font-size: 18px;">/100</span>
+                        </div>
+
+                        <div class="comment-section">
+                            <label>Комментарий для участника:</label>
+                            <textarea id="comment-1" rows="8" placeholder="Напишите развернутый комментарий к работе..."
+                                      style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; resize: vertical;"></textarea>
+                        </div>
+
+                        <div class="criteria-checklist">
+                            <h4>Критерии оценки:</h4>
+                            <div class="criteria-item">
+                                <input type="checkbox" id="criteria1" checked>
+                                <label for="criteria1">Полнота ответов</label>
+                            </div>
+                            <div class="criteria-item">
+                                <input type="checkbox" id="criteria2" checked>
+                                <label for="criteria2">Точность формулировок</label>
+                            </div>
+                            <div class="criteria-item">
+                                <input type="checkbox" id="criteria3">
+                                <label for="criteria3">Примеры и аргументация</label>
+                            </div>
+                            <div class="criteria-item">
+                                <input type="checkbox" id="criteria4" checked>
+                                <label for="criteria4">Грамотность изложения</label>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" style="width: 100%; padding: 14px; margin-top: 20px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;" onclick="submitGrade(1)">
+                            <svg class="icon icon-sm" aria-hidden="true"><use href="#ic-check"></use></svg>
+                            Отправить оценку
+                        </button>
+                        <button class="btn btn-outline" style="width: 100%; padding: 14px; margin-top: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                            <svg class="icon icon-sm" aria-hidden="true"><use href="#ic-save"></use></svg>
+                            Сохранить черновик
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Checked Tab -->
+            <div id="checked" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Проверенные работы</h1>
+                    <p>История проверок</p>
+                </div>
+
+                <div class="checked-works-list">
+                    <div class="checked-work-card">
+                        <div class="work-header">
+                            <div>
+                                <h3>Петрова Мария Андреевна</h3>
+                                <p>Викторина «Деньги и экономика»</p>
+                            </div>
+                            <div class="work-badge status-completed">Проверено</div>
+                        </div>
+                        
+                        <div class="checked-info">
+                            <div class="info-row">
+                                <div>
+                                    <p><strong>Дата проверки:</strong> 13 февраля 2026</p>
+                                    <p><strong>Время проверки:</strong> 25 минут</p>
+                                </div>
+                                <div class="grade-display">
+                                    <span class="grade-big">95</span>
+                                    <span class="grade-label">/100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="comment-preview">
+                            <h4>Комментарий:</h4>
+                            <p>Отличная работа! Все ответы даны полно и точно. Продемонстрировано глубокое понимание материала.</p>
+                        </div>
+
+                        <button class="btn-outline">Просмотреть детали</button>
+                    </div>
+
+                    <div class="checked-work-card">
+                        <div class="work-header">
+                            <div>
+                                <h3>Васильев Алексей Петрович</h3>
+                                <p>Конкурс финансовых проектов</p>
+                            </div>
+                            <div class="work-badge status-completed">Проверено</div>
+                        </div>
+                        
+                        <div class="checked-info">
+                            <div class="info-row">
+                                <div>
+                                    <p><strong>Дата проверки:</strong> 12 февраля 2026</p>
+                                    <p><strong>Время проверки:</strong> 45 минут</p>
+                                </div>
+                                <div class="grade-display">
+                                    <span class="grade-big">82</span>
+                                    <span class="grade-label">/100</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="comment-preview">
+                            <h4>Комментарий:</h4>
+                            <p>Хорошая работа. Проект интересный, но требует доработки в части финансовых расчетов. Рекомендуется более детально проработать бюджет.</p>
+                        </div>
+
+                        <button class="btn-outline">Просмотреть детали</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="profile" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Профиль</h1>
+                    <p>Личная информация</p>
+                </div>
+
+                <div class="profile-section">
+                    <h2>Личные данные</h2>
+                    <form class="profile-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Фамилия</label>
+                                <input type="text" value="Сидоров" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Имя</label>
+                                <input type="text" value="Петр" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Отчество</label>
+                                <input type="text" value="Иванович" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" value="sidorov@expert.ru" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Телефон</label>
+                                <input type="tel" value="+7 (999) 345-67-89" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Специализация</label>
+                            <input type="text" value="Финансовая грамотность, Экономика" class="form-input">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script src="../js/dashboard.js"></script>
+    <style>
+        .urgent-works { display: flex; flex-direction: column; gap: 15px; }
+        .work-item { padding: 20px; background: #f9fafb; border-radius: 10px; border-left: 4px solid #3b82f6; }
+        .work-item.urgent { background: #fef2f2; border-left-color: #ef4444; }
+        .work-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .recent-checks { display: flex; flex-direction: column; gap: 15px; }
+        .check-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f9fafb; border-radius: 10px; }
+        .check-score { display: flex; align-items: baseline; gap: 5px; }
+        .score-big { font-size: 32px; font-weight: bold; color: var(--primary-blue); }
+        .score-label { color: var(--text-gray); font-size: 18px; }
+        .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+        .work-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 4px solid #dbeafe; }
+        .work-badge { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .work-info { margin: 15px 0; color: var(--text-gray); font-size: 14px; }
+        .checking-workspace { display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
+        .work-preview, .grading-panel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .participant-info { padding: 20px; background: #f9fafb; border-radius: 10px; margin: 15px 0; }
+        .work-content { margin-top: 20px; }
+        .answer-item { padding: 20px; background: #f9fafb; border-radius: 10px; margin-bottom: 15px; }
+        .question, .answer { margin-bottom: 10px; }
+        .answer-score { margin-top: 15px; display: flex; align-items: center; gap: 10px; }
+        .total-score { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .comment-section { margin: 20px 0; }
+        .criteria-checklist { margin: 20px 0; }
+        .criteria-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .checked-works-list { display: flex; flex-direction: column; gap: 20px; }
+        .checked-work-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .info-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; }
+        .grade-display { display: flex; align-items: baseline; gap: 5px; }
+        .grade-big { font-size: 48px; font-weight: bold; color: var(--primary-blue); }
+        .grade-label { font-size: 24px; color: var(--text-gray); }
+        .comment-preview { padding: 15px; background: #f9fafb; border-radius: 10px; margin: 15px 0; }
+    </style>
+</body>
+</html>

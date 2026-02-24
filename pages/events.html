@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мероприятия - Школа финансовой культуры</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <script src="../js/icons.js"></script>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">ШФК</div>
+                    <span class="logo-text">Школа финансовой культуры</span>
+                </div>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li><a href="../index.html" class="nav-link">Главная</a></li>
+                        <li><a href="about.html" class="nav-link">О школе</a></li>
+                        <li><a href="events.html" class="nav-link active">Мероприятия</a></li>
+                        <li><a href="documents.html" class="nav-link">Документы</a></li>
+                        <li><a href="contacts.html" class="nav-link">Контакты</a></li>
+                    </ul>
+                </nav>
+                <button class="btn-login" onclick="window.location.href='auth.html'">Войти</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Hero -->
+    <section class="hero" style="padding: 60px 0;">
+        <div class="container">
+            <h1 class="hero-title" style="font-size: 42px;">Мероприятия</h1>
+            <p class="hero-subtitle">Примите участие в олимпиадах и конкурсах</p>
+        </div>
+    </section>
+
+    <!-- Filter Section -->
+    <section class="section section-light" style="padding: 40px 0;">
+        <div class="container">
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-outline filter-btn active" data-filter="all">Все мероприятия</button>
+                <button class="btn btn-outline filter-btn" data-filter="olympiad">Олимпиады</button>
+                <button class="btn btn-outline filter-btn" data-filter="competition">Конкурсы</button>
+                <button class="btn btn-outline filter-btn" data-filter="upcoming">Предстоящие</button>
+                <button class="btn btn-outline filter-btn" data-filter="active">Активные</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Olympiads Section -->
+    <section class="section" id="olympiads">
+        <div class="container">
+            <h2 class="section-title">Олимпиадное движение</h2>
+            <div class="events-grid">
+                <div class="event-card" data-type="olympiad" data-status="active">
+                    <div class="event-badge" style="background: #10b981; color: white; display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 10px;">Регистрация открыта</div>
+                    <div class="event-date">15 марта 2026</div>
+                    <h3>Олимпиада по финансовой грамотности</h3>
+                    <p>Всероссийская олимпиада для школьников 8-11 классов. Проверьте свои знания в области управления финансами, инвестиций и экономики.</p>
+                    <div style="margin: 15px 0; display: flex; align-items: center; gap: 6px; color: var(--text-gray); font-size: 14px;">
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="#ic-location"></use></svg>
+                        <span>Онлайн формат</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.location.href='event-detail.html?id=1'">Подробнее</button>
+                </div>
+                
+                <div class="event-card" data-type="olympiad" data-status="upcoming">
+                    <div class="event-badge" style="background: #f59e0b; color: white; display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 10px;">Скоро</div>
+                    <div class="event-date">25 марта 2026</div>
+                    <h3>Викторина «Деньги и экономика»</h3>
+                    <p>Онлайн-викторина для учащихся 5-7 классов. Интерактивный формат с захватывающими вопросами о финансах.</p>
+                    <div style="margin: 15px 0; display: flex; align-items: center; gap: 6px; color: var(--text-gray); font-size: 14px;">
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="#ic-location"></use></svg>
+                        <span>Онлайн формат</span>
+                    </div>
+                    <button class="btn btn-outline" onclick="window.location.href='event-detail.html?id=3'">Подробнее</button>
+                </div>
+                
+                <div class="event-card" data-type="olympiad" data-status="upcoming">
+                    <div class="event-badge" style="background: #f59e0b; color: white; display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 10px;">Скоро</div>
+                    <div class="event-date">5 апреля 2026</div>
+                    <h3>Олимпиада «Основы инвестирования»</h3>
+                    <p>Тестирование знаний по инвестированию для студентов и старшеклассников. Углубленный уровень сложности.</p>
+                    <div style="margin: 15px 0; display: flex; align-items: center; gap: 6px; color: var(--text-gray); font-size: 14px;">
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="#ic-location"></use></svg>
+                        <span>Онлайн формат</span>
+                    </div>
+                    <button class="btn btn-outline" onclick="window.location.href='event-detail.html?id=4'">Подробнее</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Competitions Section -->
+    <section class="section section-light" id="competitions">
+        <div class="container">
+            <h2 class="section-title">Конкурсное движение</h2>
+            <div class="events-grid">
+                <div class="event-card" data-type="competition" data-status="active">
+                    <div class="event-badge" style="background: #10b981; color: white; display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 10px;">Прием работ</div>
+                    <div class="event-date">20 марта 2026</div>
+                    <h3>Конкурс финансовых проектов</h3>
+                    <p>Творческий конкурс для студентов вузов. Разработайте и представьте свой финансовый проект или бизнес-идею.</p>
+                    <div style="margin: 15px 0; display: flex; align-items: center; gap: 6px; color: var(--text-gray); font-size: 14px;">
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="#ic-calendar"></use></svg>
+                        <span>Дедлайн: 20 марта</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.location.href='event-detail.html?id=2'">Подробнее</button>
+                </div>
+                
+                <div class="event-card" data-type="competition" data-status="upcoming">
+                    <div class="event-badge" style="background: #f59e0b; color: white; display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 10px;">Скоро</div>
+                    <div class="event-date">10 апреля 2026</div>
+                    <h3>Конкурс «Финансовая грамотность в жизни»</h3>
+                    <p>Конкурс эссе и презентаций для школьников. Расскажите, как вы применяете финансовые знания в повседневной жизни.</p>
+                    <div style="margin: 15px 0; display: flex; align-items: center; gap: 6px; color: var(--text-gray); font-size: 14px;">
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="#ic-calendar"></use></svg>
+                        <span>Дедлайн: 10 апреля</span>
+                    </div>
+                    <button class="btn btn-outline" onclick="window.location.href='event-detail.html?id=5'">Подробнее</button>
+                </div>
+                
+                <div class="event-card" data-type="competition" data-status="upcoming">
+                    <div class="event-badge" style="background: #f59e0b; color: white; display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 10px;">Скоро</div>
+                    <div class="event-date">15 апреля 2026</div>
+                    <h3>Конкурс видеороликов «Финансы просто»</h3>
+                    <p>Создайте короткий видеоролик, объясняющий сложные финансовые термины простым языком.</p>
+                    <div style="margin: 15px 0; display: flex; align-items: center; gap: 6px; color: var(--text-gray); font-size: 14px;">
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="#ic-calendar"></use></svg>
+                        <span>Дедлайн: 15 апреля</span>
+                    </div>
+                    <button class="btn btn-outline" onclick="window.location.href='event-detail.html?id=6'">Подробнее</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- News Section -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Новости и анонсы</h2>
+            <div class="events-grid">
+                <div class="event-card">
+                    <div class="event-date">10 февраля 2026</div>
+                    <h3>Объявлены победители зимней олимпиады</h3>
+                    <p>Подведены итоги зимней олимпиады по финансовой грамотности. Поздравляем победителей!</p>
+                    <a href="#" style="color: var(--primary-blue); text-decoration: none; font-weight: 500;">Читать далее →</a>
+                </div>
+                
+                <div class="event-card">
+                    <div class="event-date">5 февраля 2026</div>
+                    <h3>Открыта регистрация на весенний сезон</h3>
+                    <p>Стартовала регистрация участников на весенние мероприятия. Не упустите возможность проявить себя!</p>
+                    <a href="#" style="color: var(--primary-blue); text-decoration: none; font-weight: 500;">Читать далее →</a>
+                </div>
+                
+                <div class="event-card">
+                    <div class="event-date">1 февраля 2026</div>
+                    <h3>Новые образовательные материалы</h3>
+                    <p>Добавлены методические материалы для подготовки к олимпиадам и конкурсам.</p>
+                    <a href="#" style="color: var(--primary-blue); text-decoration: none; font-weight: 500;">Читать далее →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h4>О проекте</h4>
+                    <ul class="footer-links">
+                        <li><a href="about.html">О школе</a></li>
+                        <li><a href="documents.html">Документы</a></li>
+                        <li><a href="contacts.html">Контакты</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Мероприятия</h4>
+                    <ul class="footer-links">
+                        <li><a href="events.html">Все мероприятия</a></li>
+                        <li><a href="#olympiads">Олимпиады</a></li>
+                        <li><a href="#competitions">Конкурсы</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Личный кабинет</h4>
+                    <ul class="footer-links">
+                        <li><a href="auth.html">Вход</a></li>
+                        <li><a href="auth.html">Регистрация</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Контакты</h4>
+                    <p>Email: info@finschool.ru</p>
+                    <p>Телефон: +7 (999) 123-45-67</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Школа финансовой культуры. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/script.js"></script>
+    <script>
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    b.classList.remove('active');
+                    b.style.background = 'transparent';
+                    b.style.color = 'var(--primary-blue)';
+                });
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                this.style.background = 'var(--primary-blue)';
+                this.style.color = 'white';
+                
+                const filter = this.dataset.filter;
+                const cards = document.querySelectorAll('.event-card[data-type]');
+                
+                cards.forEach(card => {
+                    if (filter === 'all') {
+                        card.style.display = 'block';
+                    } else if (filter === 'olympiad' || filter === 'competition') {
+                        card.style.display = card.dataset.type === filter ? 'block' : 'none';
+                    } else if (filter === 'upcoming' || filter === 'active') {
+                        card.style.display = card.dataset.status === filter ? 'block' : 'none';
+                    }
+                });
+            });
+        });
+        
+        // Check URL parameter for filter
+        const urlParams = new URLSearchParams(window.location.search);
+        const type = urlParams.get('type');
+        if (type) {
+            const filterBtn = document.querySelector(`[data-filter="${type}"]`);
+            if (filterBtn) {
+                filterBtn.click();
+            }
+        }
+    </script>
+</body>
+</html>

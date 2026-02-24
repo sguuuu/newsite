@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель - Школа финансовой культуры</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <script src="../js/icons.js"></script>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">ШФК</div>
+                    <span class="logo-text">Школа финансовой культуры</span>
+                </div>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li><a href="../index.html" class="nav-link">Главная</a></li>
+                        <li><a href="dashboard-admin.html" class="nav-link active">Админ-панель</a></li>
+                    </ul>
+                </nav>
+                <div class="user-menu">
+                    <div class="user-avatar-sm" aria-hidden="true">A</div>
+                    <span class="user-name">Администратор</span>
+                    <button class="btn-logout" onclick="logout()">Выход</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-avatar">A</div>
+                <h3>Администратор</h3>
+                <p class="user-role">Admin</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#overview" class="sidebar-link active" onclick="showTab('overview')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-chart-bar"></use></svg> Обзор
+                </a>
+                <a href="#users" class="sidebar-link" onclick="showTab('users')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-users"></use></svg> Пользователи
+                </a>
+                <a href="#events" class="sidebar-link" onclick="showTab('events')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-calendar"></use></svg> Мероприятия
+                </a>
+                <a href="#jury" class="sidebar-link" onclick="showTab('jury')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-scale"></use></svg> Жюри
+                </a>
+                <a href="#content" class="sidebar-link" onclick="showTab('content')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-document"></use></svg> Контент
+                </a>
+                <a href="#statistics" class="sidebar-link" onclick="showTab('statistics')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-chart-line"></use></svg> Статистика
+                </a>
+                <a href="#settings" class="sidebar-link" onclick="showTab('settings')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-settings"></use></svg> Настройки
+                </a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="dashboard-header">
+                    <h1>Панель управления</h1>
+                    <p>Общая статистика платформы</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #dbeafe; color: #1e40af;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-users"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>1,247</h3>
+                            <p>Всего пользователей</p>
+                            <span style="color: #10b981; font-size: 13px;">↑ +24 за неделю</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #d1fae5; color: #065f46;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-calendar"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>15</h3>
+                            <p>Активных мероприятий</p>
+                            <span style="color: #10b981; font-size: 13px;">↑ +3 за месяц</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fef3c7; color: #92400e;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-check-circle"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>847</h3>
+                            <p>Завершенных работ</p>
+                            <span style="color: #10b981; font-size: 13px;">↑ +156 за месяц</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fce7f3; color: #9f1239;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-scale"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>32</h3>
+                            <p>Экспертов жюри</p>
+                            <span style="color: #10b981; font-size: 13px;">↑ +5 за месяц</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-grid">
+                    <div class="section-card">
+                        <h2>Активность пользователей</h2>
+                        <div class="chart-placeholder" style="padding: 40px; text-align: center; background: #f9fafb; border-radius: 10px; margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--text-gray);">
+                            <svg class="icon icon-lg" aria-hidden="true" style="color: #93c5fd;"><use href="#ic-chart-bar"></use></svg>
+                            <p>График активности за последние 30 дней</p>
+                        </div>
+                    </div>
+
+                    <div class="section-card">
+                        <h2>Последние регистрации</h2>
+                        <div class="recent-users">
+                            <div class="user-item">
+                                <div class="user-avatar small">ИИ</div>
+                                <div>
+                                    <h4>Иванов Иван</h4>
+                                    <p>Участник • 2 часа назад</p>
+                                </div>
+                            </div>
+                            <div class="user-item">
+                                <div class="user-avatar small">СА</div>
+                                <div>
+                                    <h4>Смирнова Анна</h4>
+                                    <p>Участник • 5 часов назад</p>
+                                </div>
+                            </div>
+                            <div class="user-item">
+                                <div class="user-avatar small">ПМ</div>
+                                <div>
+                                    <h4>Петрова Мария</h4>
+                                    <p>Педагог • 1 день назад</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="users" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Управление пользователями</h1>
+                    <button class="btn btn-primary" onclick="openModal('createUserModal')">+ Создать пользователя</button>
+                </div>
+
+                <div class="filter-section">
+                    <input type="text" id="searchUsers" placeholder="Поиск по имени или email..." 
+                           style="padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; width: 300px; margin-right: 10px;"
+                           oninput="searchTable('searchUsers', '.user-row')">
+                    <select style="padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; margin-right: 10px;">
+                        <option>Все роли</option>
+                        <option>Участник</option>
+                        <option>Педагог</option>
+                        <option>Жюри</option>
+                        <option>Администратор</option>
+                    </select>
+                    <select style="padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                        <option>Все статусы</option>
+                        <option>Активные</option>
+                        <option>Заблокированные</option>
+                    </select>
+                </div>
+
+                <div class="users-table">
+                    <div class="table-header">
+                        <div>Пользователь</div>
+                        <div>Роль</div>
+                        <div>Email</div>
+                        <div>Дата регистрации</div>
+                        <div>Статус</div>
+                        <div>Действия</div>
+                    </div>
+                    
+                    <div class="user-row">
+                        <div class="user-cell">
+                            <div class="user-avatar small">ИИ</div>
+                            <span>Иванов Иван</span>
+                        </div>
+                        <div><span class="role-badge participant">Участник</span></div>
+                        <div>ivanov@email.com</div>
+                        <div>01.03.2026</div>
+                        <div><span class="status-badge active">Активен</span></div>
+                        <div class="action-buttons">
+                            <button class="btn-icon" title="Редактировать" aria-label="Редактировать"><svg class="icon" aria-hidden="true"><use href="#ic-edit"></use></svg></button>
+                            <button class="btn-icon btn-icon-danger" title="Удалить" onclick="deleteUser(1)" aria-label="Удалить"><svg class="icon" aria-hidden="true"><use href="#ic-trash"></use></svg></button>
+                        </div>
+                    </div>
+                    
+                    <div class="user-row">
+                        <div class="user-cell">
+                            <div class="user-avatar small">ПА</div>
+                            <span>Петрова Анна</span>
+                        </div>
+                        <div><span class="role-badge teacher">Педагог</span></div>
+                        <div>petrova@school.ru</div>
+                        <div>15.02.2026</div>
+                        <div><span class="status-badge active">Активен</span></div>
+                        <div class="action-buttons">
+                            <button class="btn-icon" title="Редактировать" aria-label="Редактировать"><svg class="icon" aria-hidden="true"><use href="#ic-edit"></use></svg></button>
+                            <button class="btn-icon btn-icon-danger" title="Удалить" onclick="deleteUser(2)" aria-label="Удалить"><svg class="icon" aria-hidden="true"><use href="#ic-trash"></use></svg></button>
+                        </div>
+                    </div>
+                    
+                    <div class="user-row">
+                        <div class="user-cell">
+                            <div class="user-avatar small">СП</div>
+                            <span>Сидоров Петр</span>
+                        </div>
+                        <div><span class="role-badge jury">Жюри</span></div>
+                        <div>sidorov@expert.ru</div>
+                        <div>10.01.2026</div>
+                        <div><span class="status-badge active">Активен</span></div>
+                        <div class="action-buttons">
+                            <button class="btn-icon" title="Редактировать" aria-label="Редактировать"><svg class="icon" aria-hidden="true"><use href="#ic-edit"></use></svg></button>
+                            <button class="btn-icon btn-icon-danger" title="Удалить" onclick="deleteUser(3)" aria-label="Удалить"><svg class="icon" aria-hidden="true"><use href="#ic-trash"></use></svg></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events Tab -->
+            <div id="events" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Управление мероприятиями</h1>
+                    <button class="btn btn-primary" onclick="openModal('createEventModal')">+ Создать мероприятие</button>
+                </div>
+
+                <div class="filter-tabs">
+                    <button class="filter-tab active">Все (15)</button>
+                    <button class="filter-tab">Активные (8)</button>
+                    <button class="filter-tab">Предстоящие (5)</button>
+                    <button class="filter-tab">Завершенные (2)</button>
+                </div>
+
+                <div class="admin-events-grid">
+                    <div class="admin-event-card">
+                        <div class="event-header">
+                            <div>
+                                <h3>Олимпиада по финансовой грамотности</h3>
+                                <p>Олимпиада • 15 марта 2026</p>
+                            </div>
+                            <div class="event-badge status-active">Активно</div>
+                        </div>
+                        
+                        <div class="event-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Участников:</span>
+                                <span class="stat-value">147</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Работ сдано:</span>
+                                <span class="stat-value">85</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Проверено:</span>
+                                <span class="stat-value">42</span>
+                            </div>
+                        </div>
+
+                        <div class="event-actions">
+                            <button class="btn-small btn-outline">Редактировать</button>
+                            <button class="btn-small btn-outline" onclick="toggleEventStatus(1)">Завершить</button>
+                            <button class="btn-small btn-outline" onclick="deleteEvent(1)">Удалить</button>
+                        </div>
+                    </div>
+
+                    <div class="admin-event-card">
+                        <div class="event-header">
+                            <div>
+                                <h3>Конкурс финансовых проектов</h3>
+                                <p>Конкурс • 20 марта 2026</p>
+                            </div>
+                            <div class="event-badge status-active">Активно</div>
+                        </div>
+                        
+                        <div class="event-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Участников:</span>
+                                <span class="stat-value">89</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Работ сдано:</span>
+                                <span class="stat-value">45</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Проверено:</span>
+                                <span class="stat-value">18</span>
+                            </div>
+                        </div>
+
+                        <div class="event-actions">
+                            <button class="btn-small btn-outline">Редактировать</button>
+                            <button class="btn-small btn-outline" onclick="toggleEventStatus(2)">Завершить</button>
+                            <button class="btn-small btn-outline" onclick="deleteEvent(2)">Удалить</button>
+                        </div>
+                    </div>
+
+                    <div class="admin-event-card">
+                        <div class="event-header">
+                            <div>
+                                <h3>Викторина «Деньги и экономика»</h3>
+                                <p>Викторина • 25 марта 2026</p>
+                            </div>
+                            <div class="event-badge status-soon">Скоро</div>
+                        </div>
+                        
+                        <div class="event-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Участников:</span>
+                                <span class="stat-value">56</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Работ сдано:</span>
+                                <span class="stat-value">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Проверено:</span>
+                                <span class="stat-value">0</span>
+                            </div>
+                        </div>
+
+                        <div class="event-actions">
+                            <button class="btn-small btn-outline">Редактировать</button>
+                            <button class="btn-small btn-primary" onclick="toggleEventStatus(3)">Активировать</button>
+                            <button class="btn-small btn-outline" onclick="deleteEvent(3)">Удалить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jury Tab -->
+            <div id="jury" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Управление жюри</h1>
+                    <p>Назначение экспертов на мероприятия</p>
+                </div>
+
+                <div class="jury-management">
+                    <div class="section-card">
+                        <h2>Назначить жюри на мероприятие</h2>
+                        <form style="margin-top: 20px;">
+                            <div class="form-group">
+                                <label>Выберите мероприятие:</label>
+                                <select class="form-input">
+                                    <option>Олимпиада по финансовой грамотности</option>
+                                    <option>Конкурс финансовых проектов</option>
+                                    <option>Викторина «Деньги и экономика»</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Выберите эксперта:</label>
+                                <select class="form-input">
+                                    <option>Сидоров Петр Иванович</option>
+                                    <option>Кузнецова Елена Сергеевна</option>
+                                    <option>Морозов Алексей Дмитриевич</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Назначить</button>
+                        </form>
+                    </div>
+
+                    <div class="section-card">
+                        <h2>Текущие назначения</h2>
+                        <div class="assignments-list">
+                            <div class="assignment-item">
+                                <div>
+                                    <h4>Сидоров Петр Иванович</h4>
+                                    <p>Олимпиада по финансовой грамотности</p>
+                                </div>
+                                <div>
+                                    <span>15 работ назначено</span>
+                                    <button class="btn-icon btn-icon-danger" title="Отменить назначение" aria-label="Отменить назначение"><svg class="icon" aria-hidden="true"><use href="#ic-close"></use></svg></button>
+                                </div>
+                            </div>
+                            
+                            <div class="assignment-item">
+                                <div>
+                                    <h4>Кузнецова Елена Сергеевна</h4>
+                                    <p>Конкурс финансовых проектов</p>
+                                </div>
+                                <div>
+                                    <span>12 работ назначено</span>
+                                    <button class="btn-icon btn-icon-danger" title="Отменить назначение" aria-label="Отменить назначение"><svg class="icon" aria-hidden="true"><use href="#ic-close"></use></svg></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Tab -->
+            <div id="content" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Управление контентом</h1>
+                    <p>Редактирование страниц сайта</p>
+                </div>
+
+                <div class="content-sections">
+                    <div class="content-card">
+                        <h3>Главная страница</h3>
+                        <p>Редактирование контента главной страницы</p>
+                        <button class="btn-outline">Редактировать</button>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3>О школе</h3>
+                        <p>Информация о платформе и миссии</p>
+                        <button class="btn-outline">Редактировать</button>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3>Новости и анонсы</h3>
+                        <p>Управление новостной лентой</p>
+                        <button class="btn-outline">Редактировать</button>
+                    </div>
+                    
+                    <div class="content-card">
+                        <h3>Официальные документы</h3>
+                        <p>Загрузка и управление документами</p>
+                        <button class="btn-outline">Редактировать</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Tab -->
+            <div id="statistics" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Статистика платформы</h1>
+                    <button class="btn btn-outline" onclick="exportReport()" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="#ic-export"></use></svg>
+                        Экспорт отчета
+                    </button>
+                </div>
+
+                <div class="stats-overview">
+                    <div class="stat-card-large">
+                        <h3>Регистрации по месяцам</h3>
+                        <div class="chart-placeholder" style="display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--text-gray);">
+                            <svg class="icon icon-lg" aria-hidden="true" style="color: #93c5fd;"><use href="#ic-chart-bar"></use></svg>
+                            <p>График регистраций</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card-large">
+                        <h3>Распределение по ролям</h3>
+                        <div class="role-distribution">
+                            <div class="distribution-item">
+                                <span>Участников</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 75%; background: #3b82f6;"></div>
+                                </div>
+                                <span>935 (75%)</span>
+                            </div>
+                            <div class="distribution-item">
+                                <span>Педагогов</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 20%; background: #10b981;"></div>
+                                </div>
+                                <span>250 (20%)</span>
+                            </div>
+                            <div class="distribution-item">
+                                <span>Экспертов</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 5%; background: #f59e0b;"></div>
+                                </div>
+                                <span>62 (5%)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card-large">
+                        <h3>Популярные мероприятия</h3>
+                        <div class="popular-events">
+                            <div class="popular-item">
+                                <span>1. Олимпиада по финансовой грамотности</span>
+                                <span class="popular-count">147 участников</span>
+                            </div>
+                            <div class="popular-item">
+                                <span>2. Конкурс финансовых проектов</span>
+                                <span class="popular-count">89 участников</span>
+                            </div>
+                            <div class="popular-item">
+                                <span>3. Викторина «Деньги и экономика»</span>
+                                <span class="popular-count">56 участников</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Настройки платформы</h1>
+                    <p>Общие параметры системы</p>
+                </div>
+
+                <div class="settings-section">
+                    <div class="section-card">
+                        <h2>Email-уведомления</h2>
+                        <div class="settings-list">
+                            <div class="setting-item">
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="setting-info">
+                                    <h4>Уведомления о регистрации</h4>
+                                    <p>Отправлять email при регистрации пользователей</p>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="setting-info">
+                                    <h4>Напоминания о дедлайнах</h4>
+                                    <p>Автоматические напоминания участникам</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-card" style="margin-top: 30px;">
+                        <h2>Безопасность</h2>
+                        <div class="settings-list">
+                            <div class="setting-item">
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="setting-info">
+                                    <h4>Двухфакторная аутентификация</h4>
+                                    <p>Требовать 2FA для администраторов</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script src="../js/dashboard.js"></script>
+    <style>
+        .user-avatar.small { width: 40px; height: 40px; font-size: 14px; margin: 0; flex-shrink: 0; }
+        .recent-users { display: flex; flex-direction: column; gap: 15px; }
+        .user-item { display: flex; align-items: center; gap: 15px; padding: 12px; background: #f9fafb; border-radius: 8px; }
+        .user-item > div { min-width: 0; }
+        .user-item h4 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+        .user-item p { color: var(--text-gray); font-size: 13px; margin: 0; }
+        .filter-section { margin: 20px 0; }
+        .users-table { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .table-header { display: grid; grid-template-columns: 2fr 1fr 2fr 1.5fr 1fr 1fr; gap: 15px; padding: 15px 20px; background: #f9fafb; font-weight: 600; }
+        .user-row { display: grid; grid-template-columns: 2fr 1fr 2fr 1.5fr 1fr 1fr; gap: 15px; padding: 15px 20px; border-bottom: 1px solid #e5e7eb; align-items: center; }
+        .user-cell { display: flex; align-items: center; gap: 10px; }
+        .role-badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .role-badge.participant { background: #dbeafe; color: #1e40af; }
+        .role-badge.teacher { background: #d1fae5; color: #065f46; }
+        .role-badge.jury { background: #fef3c7; color: #92400e; }
+        .status-badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .status-badge.active { background: #d1fae5; color: #065f46; }
+        .action-buttons { display: flex; gap: 8px; }
+        .admin-events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+        .admin-event-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .event-stats { display: flex; justify-content: space-between; margin: 20px 0; padding: 15px; background: #f9fafb; border-radius: 8px; }
+        .stat-item { text-align: center; }
+        .stat-label { display: block; font-size: 13px; color: var(--text-gray); margin-bottom: 5px; }
+        .stat-value { font-size: 24px; font-weight: bold; color: var(--primary-blue); }
+        .event-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .jury-management { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .assignments-list { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
+        .assignment-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f9fafb; border-radius: 8px; }
+        .content-sections { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .content-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; }
+        .stats-overview { display: flex; flex-direction: column; gap: 30px; }
+        .role-distribution, .popular-events { margin-top: 20px; }
+        .distribution-item, .popular-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #e5e7eb; }
+        .popular-count { font-weight: 600; color: var(--primary-blue); }
+        .settings-section { max-width: 800px; }
+    </style>
+</body>
+</html>

@@ -1,0 +1,36 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Виртуальное окружение
+backend/venv/
+venv/
+env/
+
+# База данных
+backend/db.sqlite3
+*.sqlite3
+
+# Django media (загруженные файлы)
+backend/media/
+
+# Статические файлы (collectstatic)
+backend/staticfiles/
+
+# Переменные окружения (содержат секреты!)
+backend/.env
+.env
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Прочее
+gitt/
+*.log
+.DS_Store
+Thumbs.db

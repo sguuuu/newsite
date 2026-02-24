@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Официальные документы - Школа финансовой культуры</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <script src="../js/icons.js"></script>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">ШФК</div>
+                    <span class="logo-text">Школа финансовой культуры</span>
+                </div>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li><a href="../index.html" class="nav-link">Главная</a></li>
+                        <li><a href="about.html" class="nav-link">О школе</a></li>
+                        <li><a href="events.html" class="nav-link">Мероприятия</a></li>
+                        <li><a href="documents.html" class="nav-link active">Документы</a></li>
+                        <li><a href="contacts.html" class="nav-link">Контакты</a></li>
+                    </ul>
+                </nav>
+                <button class="btn-login" onclick="window.location.href='auth.html'">Войти</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Hero -->
+    <section class="hero" style="padding: 60px 0;">
+        <div class="container">
+            <h1 class="hero-title" style="font-size: 42px;">Официальные документы</h1>
+            <p class="hero-subtitle">Нормативная база и документация платформы</p>
+        </div>
+    </section>
+
+    <!-- Documents Section -->
+    <section class="section section-light">
+        <div class="container">
+            <h2 class="section-title">Общие документы</h2>
+            <div style="max-width: 900px; margin: 0 auto;">
+                <div class="event-card" style="margin-bottom: 20px; cursor: pointer;" onclick="downloadDocument('regulations.pdf')">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:12px;background:#dbeafe;color:#1e40af;flex-shrink:0;">
+                            <svg class="icon icon-lg" aria-hidden="true"><use href="#ic-file"></use></svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Положение о платформе</h3>
+                            <p style="color: var(--text-gray); font-size: 14px;">Основные положения и правила работы платформы</p>
+                            <div style="margin-top: 8px; color: var(--text-gray); font-size: 13px;">
+                                <span>PDF</span> • <span>482 КБ</span> • <span>Обновлено: 01.02.2026</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:#eff6ff;color:var(--primary-blue);flex-shrink:0;">
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#ic-download"></use></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="event-card" style="margin-bottom: 20px; cursor: pointer;" onclick="downloadDocument('privacy.pdf')">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:12px;background:#dbeafe;color:#1e40af;flex-shrink:0;">
+                            <svg class="icon icon-lg" aria-hidden="true"><use href="#ic-file"></use></svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Политика конфиденциальности</h3>
+                            <p style="color: var(--text-gray); font-size: 14px;">Обработка и защита персональных данных</p>
+                            <div style="margin-top: 8px; color: var(--text-gray); font-size: 13px;">
+                                <span>PDF</span> • <span>325 КБ</span> • <span>Обновлено: 15.01.2026</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:#eff6ff;color:var(--primary-blue);flex-shrink:0;">
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#ic-download"></use></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="event-card" style="margin-bottom: 20px; cursor: pointer;" onclick="downloadDocument('user-agreement.pdf')">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:12px;background:#dbeafe;color:#1e40af;flex-shrink:0;">
+                            <svg class="icon icon-lg" aria-hidden="true"><use href="#ic-file"></use></svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Пользовательское соглашение</h3>
+                            <p style="color: var(--text-gray); font-size: 14px;">Условия использования платформы</p>
+                            <div style="margin-top: 8px; color: var(--text-gray); font-size: 13px;">
+                                <span>PDF</span> • <span>267 КБ</span> • <span>Обновлено: 10.01.2026</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:#eff6ff;color:var(--primary-blue);flex-shrink:0;">
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#ic-download"></use></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="event-card" style="cursor: pointer;" onclick="downloadDocument('methodology.pdf')">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:12px;background:#dbeafe;color:#1e40af;flex-shrink:0;">
+                            <svg class="icon icon-lg" aria-hidden="true"><use href="#ic-file"></use></svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Методические рекомендации</h3>
+                            <p style="color: var(--text-gray); font-size: 14px;">Руководство для педагогов и участников</p>
+                            <div style="margin-top: 8px; color: var(--text-gray); font-size: 13px;">
+                                <span>PDF</span> • <span>1.2 МБ</span> • <span>Обновлено: 25.01.2026</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:#eff6ff;color:var(--primary-blue);flex-shrink:0;">
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#ic-download"></use></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Olympiad Documents -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Документы олимпиад</h2>
+            <div style="max-width: 900px; margin: 0 auto;">
+                <div class="event-card" style="margin-bottom: 20px; cursor: pointer;" onclick="downloadDocument('olympiad-regulations.pdf')">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:12px;background:#fef3c7;color:#92400e;flex-shrink:0;">
+                            <svg class="icon icon-lg" aria-hidden="true"><use href="#ic-clipboard"></use></svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Общее положение об олимпиадах</h3>
+                            <p style="color: var(--text-gray); font-size: 14px;">Правила проведения олимпиад по финансовой грамотности</p>
+                            <div style="margin-top: 8px; color: var(--text-gray); font-size: 13px;">
+                                <span>PDF</span> • <span>425 КБ</span> • <span>Обновлено: 05.02.2026</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:#eff6ff;color:var(--primary-blue);flex-shrink:0;">
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#ic-download"></use></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="event-card" style="margin-bottom: 20px; cursor: pointer;" onclick="downloadDocument('evaluation-criteria.pdf')">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:12px;background:#fef3c7;color:#92400e;flex-shrink:0;">
+                            <svg class="icon icon-lg" aria-hidden="true"><use href="#ic-clipboard"></use></svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Критерии оценивания</h3>
+                            <p style="color: var(--text-gray); font-size: 14px;">Система оценки работ участников олимпиад</p>
+                            <div style="margin-top: 8px; color: var(--text-gray); font-size: 13px;">
+                                <span>PDF</span> • <span>198 КБ</span> • <span>Обновлено: 01.02.2026</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:#eff6ff;color:var(--primary-blue);flex-shrink:0;">
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#ic-download"></use></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="event-card" style="cursor: pointer;" onclick="downloadDocument('work-requirements.pdf')">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:12px;background:#fef3c7;color:#92400e;flex-shrink:0;">
+                            <svg class="icon icon-lg" aria-hidden="true"><use href="#ic-clipboard"></use></svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Требования к оформлению работ</h3>
+                            <p style="color: var(--text-gray); font-size: 14px;">Технические требования к файлам и формат ответов</p>
+                            <div style="margin-top: 8px; color: var(--text-gray); font-size: 13px;">
+                                <span>PDF</span> • <span>156 КБ</span> • <span>Обновлено: 28.01.2026</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:#eff6ff;color:var(--primary-blue);flex-shrink:0;">
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#ic-download"></use></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Competition Documents -->
+    <section class="section section-light">
+        <div class="container">
+            <h2 class="section-title">Документы конкурсов</h2>
+            <div style="max-width: 900px; margin: 0 auto;">
+                <div class="event-card" style="margin-bottom: 20px; cursor: pointer;" onclick="downloadDocument('competition-regulations.pdf')">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:12px;background:#d1fae5;color:#065f46;flex-shrink:0;">
+                            <svg class="icon icon-lg" aria-hidden="true"><use href="#ic-trophy"></use></svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Положение о конкурсах</h3>
+                            <p style="color: var(--text-gray); font-size: 14px;">Общие правила и условия участия в конкурсах</p>
+                            <div style="margin-top: 8px; color: var(--text-gray); font-size: 13px;">
+                                <span>PDF</span> • <span>385 КБ</span> • <span>Обновлено: 03.02.2026</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:#eff6ff;color:var(--primary-blue);flex-shrink:0;">
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#ic-download"></use></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="event-card" style="margin-bottom: 20px; cursor: pointer;" onclick="downloadDocument('project-template.pdf')">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:12px;background:#d1fae5;color:#065f46;flex-shrink:0;">
+                            <svg class="icon icon-lg" aria-hidden="true"><use href="#ic-trophy"></use></svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Шаблон проекта</h3>
+                            <p style="color: var(--text-gray); font-size: 14px;">Образец оформления конкурсных проектов</p>
+                            <div style="margin-top: 8px; color: var(--text-gray); font-size: 13px;">
+                                <span>PDF</span> • <span>512 КБ</span> • <span>Обновлено: 20.01.2026</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:#eff6ff;color:var(--primary-blue);flex-shrink:0;">
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#ic-download"></use></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="event-card" style="cursor: pointer;" onclick="downloadDocument('awards-info.pdf')">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div style="display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:12px;background:#d1fae5;color:#065f46;flex-shrink:0;">
+                            <svg class="icon icon-lg" aria-hidden="true"><use href="#ic-trophy"></use></svg>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3 style="color: var(--primary-dark); margin-bottom: 8px;">Информация о наградах</h3>
+                            <p style="color: var(--text-gray); font-size: 14px;">Призовой фонд и система награждения</p>
+                            <div style="margin-top: 8px; color: var(--text-gray); font-size: 13px;">
+                                <span>PDF</span> • <span>245 КБ</span> • <span>Обновлено: 15.01.2026</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:8px;background:#eff6ff;color:var(--primary-blue);flex-shrink:0;">
+                            <svg class="icon icon-md" aria-hidden="true"><use href="#ic-download"></use></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h4>О проекте</h4>
+                    <ul class="footer-links">
+                        <li><a href="about.html">О школе</a></li>
+                        <li><a href="documents.html">Документы</a></li>
+                        <li><a href="contacts.html">Контакты</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Мероприятия</h4>
+                    <ul class="footer-links">
+                        <li><a href="events.html">Все мероприятия</a></li>
+                        <li><a href="events.html?type=olympiad">Олимпиады</a></li>
+                        <li><a href="events.html?type=competition">Конкурсы</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Личный кабинет</h4>
+                    <ul class="footer-links">
+                        <li><a href="auth.html">Вход</a></li>
+                        <li><a href="auth.html">Регистрация</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Контакты</h4>
+                    <p>Email: info@finschool.ru</p>
+                    <p>Телефон: +7 (999) 123-45-67</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Школа финансовой культуры. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/script.js"></script>
+    <script>
+        function downloadDocument(filename) {
+            // In real implementation, this would download the actual file
+            showNotification(`Загрузка документа "${filename}"...`, 'success');
+            console.log('Download:', filename);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кабинет педагога - Школа финансовой культуры</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <script src="../js/icons.js"></script>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">ШФК</div>
+                    <span class="logo-text">Школа финансовой культуры</span>
+                </div>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li><a href="../index.html" class="nav-link">Главная</a></li>
+                        <li><a href="events.html" class="nav-link">Мероприятия</a></li>
+                        <li><a href="dashboard-teacher.html" class="nav-link active">Личный кабинет</a></li>
+                    </ul>
+                </nav>
+                <div class="user-menu">
+                    <div class="user-avatar-sm" aria-hidden="true">ПА</div>
+                    <span class="user-name">Петрова Анна Сергеевна</span>
+                    <button class="btn-logout" onclick="logout()">Выход</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="user-avatar">ПА</div>
+                <h3>Петрова А.С.</h3>
+                <p class="user-role">Педагог-куратор</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#overview" class="sidebar-link active" onclick="showTab('overview')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-chart-bar"></use></svg> Обзор
+                </a>
+                <a href="#my-students" class="sidebar-link" onclick="showTab('my-students')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-users"></use></svg> Мои ученики
+                </a>
+                <a href="#events-progress" class="sidebar-link" onclick="showTab('events-progress')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-chart-line"></use></svg> Прогресс по мероприятиям
+                </a>
+                <a href="#statistics" class="sidebar-link" onclick="showTab('statistics')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-chart-bar"></use></svg> Статистика
+                </a>
+                <a href="#profile" class="sidebar-link" onclick="showTab('profile')">
+                    <svg class="icon" aria-hidden="true"><use href="#ic-settings"></use></svg> Профиль
+                </a>
+            </nav>
+        </aside>
+
+        <main class="dashboard-main">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="dashboard-header">
+                    <div>
+                        <h1>Кабинет педагога</h1>
+                        <p>Отслеживайте успехи своих учеников</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #dbeafe; color: #1e40af;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-users"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>24</h3>
+                            <p>Всего учеников</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #d1fae5; color: #065f46;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-check-circle"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>18</h3>
+                            <p>Активных участников</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fef3c7; color: #d97706;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-trophy"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>12</h3>
+                            <p>Призовых мест</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fce7f3; color: #9f1239;">
+                            <svg class="icon" aria-hidden="true"><use href="#ic-calendar"></use></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3>5</h3>
+                            <p>Текущих мероприятий</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-grid">
+                    <div class="section-card">
+                        <h2>Топ учеников</h2>
+                        <div class="students-list">
+                            <div class="student-item">
+                                <div class="student-info">
+                                    <div class="student-avatar">ИИ</div>
+                                    <div>
+                                        <h4>Иванов Иван</h4>
+                                        <p>11 класс</p>
+                                    </div>
+                                </div>
+                                <div class="student-stats">
+                                    <span class="badge-gold" style="display:inline-flex;align-items:center;gap:4px;"><svg class="icon icon-sm" aria-hidden="true"><use href="#ic-medal"></use></svg>3 места</span>
+                                    <span>12 мероприятий</span>
+                                </div>
+                            </div>
+                            
+                            <div class="student-item">
+                                <div class="student-info">
+                                    <div class="student-avatar">СА</div>
+                                    <div>
+                                        <h4>Смирнова Анна</h4>
+                                        <p>10 класс</p>
+                                    </div>
+                                </div>
+                                <div class="student-stats">
+                                    <span class="badge-silver" style="display:inline-flex;align-items:center;gap:4px;"><svg class="icon icon-sm" aria-hidden="true"><use href="#ic-medal"></use></svg>2 места</span>
+                                    <span>10 мероприятий</span>
+                                </div>
+                            </div>
+                            
+                            <div class="student-item">
+                                <div class="student-info">
+                                    <div class="student-avatar">КД</div>
+                                    <div>
+                                        <h4>Кузнецов Дмитрий</h4>
+                                        <p>11 класс</p>
+                                    </div>
+                                </div>
+                                <div class="student-stats">
+                                    <span class="badge-bronze" style="display:inline-flex;align-items:center;gap:4px;"><svg class="icon icon-sm" aria-hidden="true"><use href="#ic-medal"></use></svg>1 место</span>
+                                    <span>8 мероприятий</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-card">
+                        <h2>Предстоящие дедлайны</h2>
+                        <div class="deadlines-list">
+                            <div class="deadline-item urgent">
+                                <h4>Олимпиада по финансовой грамотности</h4>
+                                <p>Участников: 15 из 24</p>
+                                <span class="deadline-badge">Осталось 2 дня</span>
+                            </div>
+                            
+                            <div class="deadline-item">
+                                <h4>Конкурс финансовых проектов</h4>
+                                <p>Участников: 8 из 24</p>
+                                <span class="deadline-badge">Осталось 5 дней</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Students Tab -->
+            <div id="my-students" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Мои ученики</h1>
+                    <div>
+                        <input type="text" id="searchStudents" placeholder="Поиск по имени..." 
+                               style="padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; margin-right: 10px;"
+                               oninput="searchTable('searchStudents', '.student-row')">
+                        <button class="btn btn-primary" onclick="exportReport()" style="display:inline-flex;align-items:center;gap:8px;">
+                            <svg class="icon icon-sm" aria-hidden="true"><use href="#ic-export"></use></svg>
+                            Экспорт отчета
+                        </button>
+                    </div>
+                </div>
+
+                <div class="students-table">
+                    <div class="table-header">
+                        <div>Ученик</div>
+                        <div>Класс</div>
+                        <div>Активные</div>
+                        <div>Завершено</div>
+                        <div>Результаты</div>
+                        <div>Действия</div>
+                    </div>
+                    
+                    <div class="student-row">
+                        <div class="student-cell">
+                            <div class="student-avatar small">ИИ</div>
+                            <span>Иванов Иван</span>
+                        </div>
+                        <div>11</div>
+                        <div>5</div>
+                        <div>12</div>
+                        <div>
+                            <span class="badge-gold" style="display:inline-flex;align-items:center;gap:3px;font-size:12px;"><svg class="icon icon-xs" aria-hidden="true"><use href="#ic-medal"></use></svg>3</span>
+                            <span class="badge-silver" style="display:inline-flex;align-items:center;gap:3px;font-size:12px;"><svg class="icon icon-xs" aria-hidden="true"><use href="#ic-medal"></use></svg>2</span>
+                        </div>
+                        <div>
+                            <button class="btn-small btn-outline" onclick="viewStudentDetails(1)">Подробнее</button>
+                        </div>
+                    </div>
+                    
+                    <div class="student-row">
+                        <div class="student-cell">
+                            <div class="student-avatar small">СА</div>
+                            <span>Смирнова Анна</span>
+                        </div>
+                        <div>10</div>
+                        <div>4</div>
+                        <div>10</div>
+                        <div>
+                            <span class="badge-silver" style="display:inline-flex;align-items:center;gap:3px;font-size:12px;"><svg class="icon icon-xs" aria-hidden="true"><use href="#ic-medal"></use></svg>2</span>
+                            <span class="badge-bronze" style="display:inline-flex;align-items:center;gap:3px;font-size:12px;"><svg class="icon icon-xs" aria-hidden="true"><use href="#ic-medal"></use></svg>1</span>
+                        </div>
+                        <div>
+                            <button class="btn-small btn-outline" onclick="viewStudentDetails(2)">Подробнее</button>
+                        </div>
+                    </div>
+                    
+                    <div class="student-row">
+                        <div class="student-cell">
+                            <div class="student-avatar small">КД</div>
+                            <span>Кузнецов Дмитрий</span>
+                        </div>
+                        <div>11</div>
+                        <div>3</div>
+                        <div>8</div>
+                        <div>
+                            <span class="badge-bronze" style="display:inline-flex;align-items:center;gap:3px;font-size:12px;"><svg class="icon icon-xs" aria-hidden="true"><use href="#ic-medal"></use></svg>1</span>
+                        </div>
+                        <div>
+                            <button class="btn-small btn-outline" onclick="viewStudentDetails(3)">Подробнее</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events Progress Tab -->
+            <div id="events-progress" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Прогресс по мероприятиям</h1>
+                    <p>Отслеживайте участие учеников в текущих мероприятиях</p>
+                </div>
+
+                <div class="event-progress-list">
+                    <div class="event-progress-card">
+                        <div class="event-header">
+                            <h3>Олимпиада по финансовой грамотности</h3>
+                            <span class="event-badge status-active">Активно</span>
+                        </div>
+                        <div class="progress-info">
+                            <p><strong>Участников:</strong> 15 из 24 (62.5%)</p>
+                            <p><strong>Дедлайн:</strong> 15 марта 2026</p>
+                            <div class="progress-bar" style="margin: 15px 0;">
+                                <div class="progress-fill" style="width: 62.5%;"></div>
+                            </div>
+                        </div>
+                        <div class="participants-preview">
+                            <h4>Участвующие ученики:</h4>
+                            <div class="avatars-row">
+                                <div class="student-avatar tiny">ИИ</div>
+                                <div class="student-avatar tiny">СА</div>
+                                <div class="student-avatar tiny">КД</div>
+                                <div class="student-avatar tiny">ПМ</div>
+                                <div class="student-avatar tiny">+11</div>
+                            </div>
+                        </div>
+                        <button class="btn-outline" style="margin-top: 15px;">Список участников</button>
+                    </div>
+
+                    <div class="event-progress-card">
+                        <div class="event-header">
+                            <h3>Конкурс финансовых проектов</h3>
+                            <span class="event-badge status-active">Активно</span>
+                        </div>
+                        <div class="progress-info">
+                            <p><strong>Участников:</strong> 8 из 24 (33.3%)</p>
+                            <p><strong>Дедлайн:</strong> 20 марта 2026</p>
+                            <div class="progress-bar" style="margin: 15px 0;">
+                                <div class="progress-fill" style="width: 33.3%;"></div>
+                            </div>
+                        </div>
+                        <div class="participants-preview">
+                            <h4>Участвующие ученики:</h4>
+                            <div class="avatars-row">
+                                <div class="student-avatar tiny">ИИ</div>
+                                <div class="student-avatar tiny">СА</div>
+                                <div class="student-avatar tiny">КД</div>
+                                <div class="student-avatar tiny">+5</div>
+                            </div>
+                        </div>
+                        <button class="btn-outline" style="margin-top: 15px;">Список участников</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Tab -->
+            <div id="statistics" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Статистика</h1>
+                    <p>Аналитика успеваемости учеников</p>
+                </div>
+
+                <div class="stats-cards">
+                    <div class="stat-card-large">
+                        <h3>Общая успеваемость</h3>
+                        <div class="chart-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--text-gray);">
+                            <svg class="icon icon-lg" aria-hidden="true" style="color:#93c5fd;"><use href="#ic-chart-bar"></use></svg>
+                            <p>График успеваемости по месяцам</p>
+                            <p style="color: var(--text-gray); font-size: 14px; margin-top: 10px;">
+                                Средний балл: 87.5 / 100
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card-large">
+                        <h3>Распределение результатов</h3>
+                        <div class="results-breakdown">
+                            <div class="breakdown-item">
+                                <span class="badge-gold">Первых мест</span>
+                                <span class="breakdown-value">12</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="badge-silver">Вторых мест</span>
+                                <span class="breakdown-value">8</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="badge-bronze">Третьих мест</span>
+                                <span class="breakdown-value">5</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span>Участие</span>
+                                <span class="breakdown-value">42</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="profile" class="tab-content">
+                <div class="dashboard-header">
+                    <h1>Профиль</h1>
+                    <p>Личная информация и настройки</p>
+                </div>
+
+                <div class="profile-section">
+                    <h2>Личные данные</h2>
+                    <form class="profile-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Фамилия</label>
+                                <input type="text" value="Петрова" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Имя</label>
+                                <input type="text" value="Анна" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Отчество</label>
+                                <input type="text" value="Сергеевна" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" value="petrova@school15.ru" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Телефон</label>
+                                <input type="tel" value="+7 (999) 234-56-78" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Учебное заведение</label>
+                                <input type="text" value="МБОУ СОШ №15" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Должность</label>
+                                <input type="text" value="Учитель обществознания" class="form-input">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script src="../js/dashboard.js"></script>
+    <style>
+        .students-list { display: flex; flex-direction: column; gap: 15px; }
+        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f9fafb; border-radius: 10px; }
+        .student-info { display: flex; align-items: center; gap: 15px; }
+        .student-avatar { width: 50px; height: 50px; background: var(--gradient-hero); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0; }
+        .student-avatar.small { width: 40px; height: 40px; font-size: 14px; margin: 0; flex-shrink: 0; }
+        .student-avatar.tiny { width: 35px; height: 35px; font-size: 12px; margin: 0; flex-shrink: 0; }
+        .student-stats { display: flex; gap: 10px; align-items: center; font-size: 13px; }
+        .deadlines-list { display: flex; flex-direction: column; gap: 15px; }
+        .deadline-item { padding: 15px; background: #f9fafb; border-radius: 10px; border-left: 4px solid #3b82f6; }
+        .deadline-item.urgent { border-left-color: #ef4444; background: #fef2f2; }
+        .deadline-badge { display: inline-block; padding: 4px 10px; background: #dbeafe; color: #1e40af; border-radius: 12px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+        .students-table { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .table-header { display: grid; grid-template-columns: 2fr 0.5fr 0.8fr 0.8fr 1fr 1fr; gap: 15px; padding: 15px 20px; background: #f9fafb; font-weight: 600; color: var(--text-dark); }
+        .student-row { display: grid; grid-template-columns: 2fr 0.5fr 0.8fr 0.8fr 1fr 1fr; gap: 15px; padding: 15px 20px; border-bottom: 1px solid #e5e7eb; align-items: center; }
+        .student-cell { display: flex; align-items: center; gap: 10px; }
+        .event-progress-list { display: flex; flex-direction: column; gap: 20px; }
+        .event-progress-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .participants-preview { margin-top: 20px; }
+        .avatars-row { display: flex; gap: 8px; margin-top: 10px; }
+        .stats-cards { display: grid; gap: 20px; }
+        .stat-card-large { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .chart-placeholder { text-align: center; padding: 60px 20px; background: #f9fafb; border-radius: 10px; margin-top: 20px; }
+        .results-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        .breakdown-item { text-align: center; padding: 20px; background: #f9fafb; border-radius: 10px; }
+        .breakdown-value { display: block; font-size: 32px; font-weight: bold; color: var(--primary-blue); margin-top: 10px; }
+    </style>
+</body>
+</html>

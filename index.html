@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Школа финансовой культуры</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <script src="js/icons.js"></script>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">ШФК</div>
+                    <span class="logo-text">Школа финансовой культуры</span>
+                </div>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li><a href="index.html" class="nav-link active">Главная</a></li>
+                        <li><a href="pages/about.html" class="nav-link">О школе</a></li>
+                        <li><a href="pages/events.html" class="nav-link">Мероприятия</a></li>
+                        <li><a href="pages/documents.html" class="nav-link">Документы</a></li>
+                        <li><a href="pages/contacts.html" class="nav-link">Контакты</a></li>
+                    </ul>
+                </nav>
+                <button class="btn-login" onclick="window.location.href='pages/auth.html'">Войти</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Школа финансовой культуры</h1>
+                <p class="hero-subtitle">Развивайте финансовую грамотность через олимпиады и конкурсы</p>
+                
+                <div class="hero-actions">
+                    <div class="action-card">
+                        <h3>Олимпиадное движение</h3>
+                        <p>Проверьте свои знания в области финансовой грамотности</p>
+                        <button class="btn btn-primary" onclick="showOlympiads()">Участвовать</button>
+                    </div>
+                    
+                    <div class="action-card">
+                        <h3>Конкурсное движение</h3>
+                        <p>Примите участие в творческих конкурсах по финансовой тематике</p>
+                        <button class="btn btn-secondary" onclick="showCompetitions()">Участвовать</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section section-light">
+        <div class="container">
+            <h2 class="section-title">О платформе</h2>
+            <div class="about-grid">
+                <div class="about-text">
+                    <p>Школа финансовой культуры — это современная платформа для организации олимпиадного и конкурсного движения в сфере финансовой грамотности.</p>
+                    <p>Мы предоставляем полный цикл участия: от регистрации до получения результатов и обратной связи от жюри.</p>
+                    <ul class="features-list">
+                        <li><svg class="icon" aria-hidden="true"><use href="#ic-check"></use></svg>Удобная регистрация на мероприятия</li>
+                        <li><svg class="icon" aria-hidden="true"><use href="#ic-check"></use></svg>Онлайн-сдача работ</li>
+                        <li><svg class="icon" aria-hidden="true"><use href="#ic-check"></use></svg>Личный кабинет участника</li>
+                        <li><svg class="icon" aria-hidden="true"><use href="#ic-check"></use></svg>Обратная связь от экспертов</li>
+                    </ul>
+                </div>
+                <div class="about-image">
+                    <div class="image-placeholder">
+                        <span>Изображение</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Events Section -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Актуальные мероприятия</h2>
+            <div class="events-grid">
+                <div class="event-card">
+                    <div class="event-date">15 марта 2026</div>
+                    <h3>Олимпиада по финансовой грамотности</h3>
+                    <p>Всероссийская олимпиада для школьников 8-11 классов</p>
+                    <button class="btn btn-outline">Подробнее</button>
+                </div>
+                
+                <div class="event-card">
+                    <div class="event-date">20 марта 2026</div>
+                    <h3>Конкурс финансовых проектов</h3>
+                    <p>Творческий конкурс для студентов вузов</p>
+                    <button class="btn btn-outline">Подробнее</button>
+                </div>
+                
+                <div class="event-card">
+                    <div class="event-date">25 марта 2026</div>
+                    <h3>Викторина «Деньги и экономика»</h3>
+                    <p>Онлайн-викторина для учащихся 5-7 классов</p>
+                    <button class="btn btn-outline">Подробнее</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h4>О проекте</h4>
+                    <ul class="footer-links">
+                        <li><a href="pages/about.html">О школе</a></li>
+                        <li><a href="pages/documents.html">Документы</a></li>
+                        <li><a href="pages/contacts.html">Контакты</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Мероприятия</h4>
+                    <ul class="footer-links">
+                        <li><a href="pages/events.html">Все мероприятия</a></li>
+                        <li><a href="#olympiads">Олимпиады</a></li>
+                        <li><a href="#competitions">Конкурсы</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Личный кабинет</h4>
+                    <ul class="footer-links">
+                        <li><a href="pages/auth.html">Вход</a></li>
+                        <li><a href="pages/auth.html">Регистрация</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Контакты</h4>
+                    <p>Email: info@finschool.ru</p>
+                    <p>Телефон: +7 (999) 123-45-67</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Школа финансовой культуры. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
