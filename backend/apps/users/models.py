@@ -45,6 +45,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         limit_choices_to={'role': 'teacher'},
     )
 
+    consent_given = models.BooleanField(
+        default=False, verbose_name='Согласие на обработку персональных данных'
+    )
+    consent_given_at = models.DateTimeField(
+        null=True, blank=True, verbose_name='Дата согласия'
+    )
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True, verbose_name='Дата регистрации')

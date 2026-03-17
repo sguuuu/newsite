@@ -14,7 +14,8 @@ class EventListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = [
-            'id', 'title', 'short_description', 'event_type', 'status', 'format',
+            'id', 'title', 'short_description', 'event_type', 'movement_type',
+            'status', 'format',
             'start_date', 'end_date', 'registration_deadline',
             'participant_count', 'is_registration_open', 'max_participants',
         ]
@@ -35,7 +36,7 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
         model = Event
         fields = [
             'title', 'description', 'short_description',
-            'event_type', 'status', 'format',
+            'event_type', 'movement_type', 'status', 'format',
             'start_date', 'end_date', 'registration_deadline',
             'max_participants', 'age_min', 'age_max',
         ]

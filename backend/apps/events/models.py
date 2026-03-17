@@ -7,6 +7,10 @@ class Event(models.Model):
         ('olympiad', 'Олимпиада'),
         ('competition', 'Конкурс'),
     ]
+    MOVEMENT_CHOICES = [
+        ('olympiad_movement', 'Подготовительно-олимпиадное движение'),
+        ('career_guidance', 'Профориентационное движение'),
+    ]
     STATUS_CHOICES = [
         ('draft', 'Черновик'),
         ('upcoming', 'Предстоящее'),
@@ -25,6 +29,10 @@ class Event(models.Model):
     short_description = models.CharField(max_length=500, blank=True, verbose_name='Краткое описание')
 
     event_type = models.CharField(max_length=20, choices=TYPE_CHOICES, verbose_name='Тип')
+    movement_type = models.CharField(
+        max_length=30, choices=MOVEMENT_CHOICES,
+        default='olympiad_movement', verbose_name='Направление движения'
+    )
     status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name='Статус'
     )

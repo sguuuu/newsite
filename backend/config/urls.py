@@ -28,8 +28,9 @@ urlpatterns = [
 
     # ── Фронтенд (раздача статических файлов и HTML) ──────────────────────
     # CSS и JS
-    re_path(r'^css/(?P<path>.*)$', serve, {'document_root': str(FRONTEND_DIR / 'css')}),
-    re_path(r'^js/(?P<path>.*)$',  serve, {'document_root': str(FRONTEND_DIR / 'js')}),
+    re_path(r'^css/(?P<path>.*)$',    serve, {'document_root': str(FRONTEND_DIR / 'css')}),
+    re_path(r'^js/(?P<path>.*)$',     serve, {'document_root': str(FRONTEND_DIR / 'js')}),
+    re_path(r'^images/(?P<path>.*)$', serve, {'document_root': str(FRONTEND_DIR / 'images')}),
 
     # Страницы (pages/*.html)
     re_path(r'^pages/(?P<path>.*)$', serve, {'document_root': str(FRONTEND_DIR / 'pages')}),

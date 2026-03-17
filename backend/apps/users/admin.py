@@ -13,13 +13,14 @@ class UserAdmin(BaseUserAdmin):
     list_filter = ['role', 'status', 'is_active', 'is_staff']
     search_fields = ['email', 'first_name', 'last_name', 'institution']
     ordering = ['-date_joined']
-    readonly_fields = ['date_joined', 'last_activity']
+    readonly_fields = ['date_joined', 'last_activity', 'consent_given_at']
 
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Личные данные', {'fields': ('first_name', 'last_name', 'patronymic', 'phone')}),
         ('Роль и статус', {'fields': ('role', 'status')}),
         ('Учреждение', {'fields': ('institution', 'grade_or_position', 'teacher')}),
+        ('Согласие', {'fields': ('consent_given', 'consent_given_at')}),
         ('Права доступа', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Даты', {'fields': ('date_joined', 'last_activity')}),
     )

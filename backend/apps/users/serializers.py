@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -28,6 +29,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     password_confirm = serializers.CharField(write_only=True)
+    consent_given = serializers.BooleanField()
 
     class Meta:
         model = User
@@ -35,10 +37,18 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'email', 'password', 'password_confirm',
             'first_name', 'last_name', 'patronymic',
             'phone', 'role', 'institution', 'grade_or_position',
+            'consent_given',
         ]
         extra_kwargs = {
             'role': {'default': 'participant'},
         }
+
+    def validate_consent_given(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                'Необходимо дать согласие на обработку персональных данных.'
+            )
+        return value
 
     def validate(self, data):
         if data['password'] != data.pop('password_confirm'):
@@ -49,6 +59,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password')
+        validated_data['consent_given_at'] = timezone.now()
         user = User(**validated_data)
         user.set_password(password)
         user.save()

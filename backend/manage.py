@@ -3,6 +3,16 @@
 import os
 import sys
 
+# PyMySQL как замена MySQLdb для manage.py (wsgi.py не вызывается при manage-командах)
+try:
+    import MySQLdb  # noqa: F401
+except ImportError:
+    try:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+    except ImportError:
+        pass
+
 
 def main():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')

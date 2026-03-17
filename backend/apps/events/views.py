@@ -35,7 +35,7 @@ class EventViewSet(ModelViewSet):
     """
     queryset = Event.objects.all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['event_type', 'status', 'format']
+    filterset_fields = ['event_type', 'movement_type', 'status', 'format']
     search_fields = ['title', 'description']
     ordering_fields = ['start_date', 'end_date', 'created_at']
     ordering = ['-start_date']
