@@ -38,7 +38,7 @@ class SubmissionUploadSerializer(serializers.ModelSerializer):
         max_size = 20 * 1024 * 1024  # 20 МБ
         if value.size > max_size:
             raise serializers.ValidationError('Размер файла не должен превышать 20 МБ.')
-        allowed = ['.pdf', '.doc', '.docx', '.zip', '.rar']
+        allowed = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.zip', '.rar']
         ext = '.' + value.name.split('.')[-1].lower()
         if ext not in allowed:
             raise serializers.ValidationError(

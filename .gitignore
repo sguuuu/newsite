@@ -36,3 +36,5 @@ gitt/
 Thumbs.db
 
 *.zip
+frontend/node_modules/
+frontend/dist/

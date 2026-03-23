@@ -40,6 +40,13 @@ class EventViewSet(ModelViewSet):
     ordering_fields = ['start_date', 'end_date', 'created_at']
     ordering = ['-start_date']
 
+    def get_queryset(self):
+        qs = Event.objects.all()
+        if (self.request.query_params.get('my') == 'true'
+                and self.request.user.is_authenticated):
+            qs = qs.filter(registrations__participant=self.request.user)
+        return qs
+
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
             return [IsAuthenticatedOrReadOnly()]
