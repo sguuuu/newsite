@@ -14,7 +14,15 @@
                 <h1 style="font-size:32px; color:var(--primary-dark); margin-bottom:10px;">{{ event.title }}</h1>
                 <p style="color:var(--text-gray); font-size:16px;">{{ typeLabel(event.event_type) }} • {{ formatLabel(event.format) }}</p>
               </div>
-              <div v-if="canRegister">
+              <!-- Не авторизован -->
+              <div v-if="!auth.isAuthenticated && isOpenEvent">
+                <RouterLink to="/auth" class="btn btn-primary" style="background:var(--primary-blue); color:white; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+                  <svg class="icon" style="width:16px;height:16px"><use href="#ic-user"/></svg>
+                  Войти для участия
+                </RouterLink>
+              </div>
+              <!-- Авторизован как участник -->
+              <div v-else-if="canRegister">
                 <button v-if="!isRegistered" class="btn btn-primary" style="background:var(--primary-blue); color:white;" @click="register" :disabled="regLoading">
                   {{ regLoading ? 'Регистрируем...' : 'Записаться' }}
                 </button>
@@ -55,6 +63,28 @@
             <p>{{ event.age_min && event.age_max ? `от ${event.age_min} до ${event.age_max} лет` : event.age_min ? `от ${event.age_min} лет` : `до ${event.age_max} лет` }}</p>
           </div>
 
+          <!-- Документы мероприятия -->
+          <div v-if="eventDocs.length" style="background:white; padding:30px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); margin-bottom:30px;">
+            <h2 style="font-size:22px; color:var(--primary-dark); margin-bottom:20px;">Документы мероприятия</h2>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div v-for="doc in eventDocs" :key="doc.id"
+                   style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <svg class="icon" style="width:20px;height:20px;color:var(--primary-blue);flex-shrink:0"><use href="#ic-file"/></svg>
+                  <div>
+                    <div style="font-weight:600; font-size:14px;">{{ doc.title }}</div>
+                    <div style="font-size:12px; color:var(--text-gray);">{{ docTypeLabel(doc.doc_type) }} · {{ doc.file_size_display }}</div>
+                  </div>
+                </div>
+                <a :href="'/api/documents/' + doc.id + '/download/'"
+                   style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--primary-blue);color:white;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+                  <svg class="icon" style="width:14px;height:14px"><use href="#ic-download"/></svg>
+                  Скачать
+                </a>
+              </div>
+            </div>
+          </div>
+
           <!-- Error/success messages -->
           <div v-if="regError" style="background:#fef2f2; color:#991b1b; padding:15px; border-radius:8px; margin-bottom:20px;">{{ regError }}</div>
           <div v-if="regSuccess" style="background:#d1fae5; color:#065f46; padding:15px; border-radius:8px; margin-bottom:20px;">{{ regSuccess }}</div>
@@ -83,19 +113,26 @@ const isRegistered = ref(false)
 const regLoading = ref(false)
 const regError = ref('')
 const regSuccess = ref('')
+const eventDocs = ref([])
 
-const canRegister = computed(() => auth.isAuthenticated && auth.user?.role === 'participant' && event.value?.status === 'active')
+const isOpenEvent = computed(() => event.value?.status === 'active' || event.value?.status === 'upcoming')
+const canRegister = computed(() => auth.isAuthenticated && auth.user?.role === 'participant' && isOpenEvent.value)
 
 onMounted(async () => {
   loading.value = true
   try {
     const res = await api.get(`/api/events/${route.params.id}/`)
     event.value = res.data
+    // Загружаем документы мероприятия
+    try {
+      const docsRes = await api.get(`/api/documents/?event=${route.params.id}`)
+      eventDocs.value = docsRes.data.results || docsRes.data
+    } catch {}
     if (auth.isAuthenticated && auth.user?.role === 'participant') {
       try {
-        const regs = await api.get(`/api/events/${route.params.id}/participants/`)
+        const regs = await api.get('/api/events/my-registrations/')
         const list = regs.data.results || regs.data
-        isRegistered.value = list.some(r => r.participant === auth.user?.id)
+        isRegistered.value = list.some(r => r.event === event.value?.id || r.event?.id === event.value?.id)
       } catch {}
     }
   } catch {
@@ -131,4 +168,7 @@ function statusLabel(s) {
 }
 function typeLabel(t) { return { olympiad: 'Олимпиада', competition: 'Конкурс' }[t] || t }
 function formatLabel(f) { return { online: 'Онлайн', offline: 'Офлайн', hybrid: 'Гибридный' }[f] || f }
+function docTypeLabel(t) {
+  return { regulation: 'Положение', template: 'Шаблон работы', criteria: 'Критерии оценивания', methodology: 'Метод. материалы', privacy: 'Политика конф.', other: 'Прочее' }[t] || t
+}
 </script>

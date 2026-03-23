@@ -26,9 +26,9 @@ class DocumentUploadSerializer(serializers.ModelSerializer):
         fields = ['title', 'description', 'file', 'doc_type', 'event']
 
     def validate_file(self, value):
-        max_size = 50 * 1024 * 1024  # 50 МБ
+        max_size = 10 * 1024 * 1024  # 10 МБ
         if value.size > max_size:
-            raise serializers.ValidationError('Размер файла не должен превышать 50 МБ.')
+            raise serializers.ValidationError('Размер файла не должен превышать 10 МБ.')
         return value
 
     def create(self, validated_data):

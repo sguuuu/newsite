@@ -64,34 +64,37 @@
       </div>
     </section>
 
-    <!-- Stats -->
-    <section class="section">
-      <div class="container">
-        <h2 class="section-title">Достижения платформы</h2>
-        <div class="stats-grid" style="max-width:900px; margin:0 auto;">
-          <div class="stat-card">
-            <div class="stat-icon" style="background:#dbeafe;color:#1e40af"><svg class="icon"><use href="#ic-users"/></svg></div>
-            <div class="stat-info"><h3>1 200+</h3><p>Зарегистрированных участников</p></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon" style="background:#d1fae5;color:#065f46"><svg class="icon"><use href="#ic-calendar"/></svg></div>
-            <div class="stat-info"><h3>50+</h3><p>Проведённых мероприятий</p></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon" style="background:#fef3c7;color:#92400e"><svg class="icon"><use href="#ic-trophy"/></svg></div>
-            <div class="stat-info"><h3>850+</h3><p>Завершённых работ</p></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon" style="background:#fce7f3;color:#9f1239"><svg class="icon"><use href="#ic-scale"/></svg></div>
-            <div class="stat-info"><h3>30+</h3><p>Экспертов жюри</p></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- Footer -->
     <footer class="footer">
       <div class="container">
+        <div class="footer-content">
+          <div class="footer-column">
+            <h4>Школа финансовой культуры</h4>
+            <p>Платформа Сочинского государственного университета</p>
+          </div>
+          <div class="footer-column">
+            <h4>Мероприятия</h4>
+            <ul class="footer-links">
+              <li><RouterLink to="/events?type=olympiad">Олимпиады</RouterLink></li>
+              <li><RouterLink to="/events?type=competition">Конкурсы</RouterLink></li>
+              <li><RouterLink to="/documents">Документы</RouterLink></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h4>О платформе</h4>
+            <ul class="footer-links">
+              <li><RouterLink to="/about">О школе</RouterLink></li>
+              <li><RouterLink to="/contacts">Контакты</RouterLink></li>
+              <li><RouterLink to="/auth">Вход / Регистрация</RouterLink></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h4>Контакты</h4>
+            <p>info@finansy.ru</p>
+            <p>+7 (862) 123-45-67</p>
+            <p>г. Сочи, ул. Советская, 26а</p>
+          </div>
+        </div>
         <div class="footer-bottom">
           <p>© {{ new Date().getFullYear() }} Школа финансовой культуры. Сочинский государственный университет.</p>
         </div>
@@ -102,4 +105,5 @@
 
 <script setup>
 import AppHeader from '@/components/AppHeader.vue'
+import { RouterLink } from 'vue-router'
 </script>

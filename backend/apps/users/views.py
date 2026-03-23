@@ -157,3 +157,208 @@ class UserViewSet(ModelViewSet):
         result = {item['role']: item['count'] for item in stats}
         result['total'] = User.objects.count()
         return Response(result)
+
+    @action(detail=True, methods=['post'])
+    def assign_teacher(self, request, pk=None):
+        """POST /api/auth/users/{id}/assign_teacher/ — назначить педагога участнику (admin)."""
+        user = self.get_object()
+        teacher_id = request.data.get('teacher_id')
+        if teacher_id:
+            try:
+                teacher = User.objects.get(id=teacher_id, role='teacher')
+                user.teacher = teacher
+            except User.DoesNotExist:
+                return Response({'detail': 'Педагог не найден.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            user.teacher = None
+        user.save(update_fields=['teacher'])
+        return Response(UserListSerializer(user).data)
+
+
+# ─── Teachers list (public for participants) ──────────────────────────────────
+
+class TeacherListView(generics.ListAPIView):
+    """GET /api/auth/teachers/ — список активных педагогов (для выбора участником)."""
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserListSerializer
+
+    def get_queryset(self):
+        return User.objects.filter(role='teacher', status='active').order_by('last_name')
+
+
+# ─── Teacher: my students ─────────────────────────────────────────────────────
+
+class MyStudentsView(APIView):
+    """
+    GET  /api/auth/my-students/        — список учеников с прогрессом
+    POST /api/auth/my-students/add/    — добавить ученика по email
+    DELETE /api/auth/my-students/{id}/ — отвязать ученика
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != 'teacher':
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        from apps.submissions.models import Submission, EventResult
+        students = request.user.students.filter(status='active').order_by('last_name')
+
+        result = []
+        for s in students:
+            submissions = Submission.objects.filter(participant=s)
+            results = EventResult.objects.filter(participant=s, place__gt=0, place__lte=3)
+            from apps.events.models import EventRegistration
+            events = EventRegistration.objects.filter(
+                participant=s, status__in=('registered', 'active', 'completed')
+            ).select_related('event')
+
+            result.append({
+                'id': s.id,
+                'full_name': s.full_name,
+                'email': s.email,
+                'institution': s.institution,
+                'grade_or_position': s.grade_or_position,
+                'initials': s.initials,
+                'events': [
+                    {
+                        'id': r.event.id,
+                        'title': r.event.title,
+                        'status': r.event.status,
+                        'reg_status': r.status,
+                    }
+                    for r in events
+                ],
+                'submissions': [
+                    {
+                        'id': sub.id,
+                        'event_title': sub.event.title,
+                        'status': sub.status,
+                        'score': sub.evaluation.score if hasattr(sub, 'evaluation') else None,
+                        'submitted_at': sub.submitted_at,
+                    }
+                    for sub in submissions.select_related('event')
+                ],
+                'prizes': results.count(),
+            })
+
+        return Response(result)
+
+
+class AddStudentView(APIView):
+    """POST /api/auth/my-students/add/ — педагог добавляет ученика по email."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role != 'teacher':
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        email = request.data.get('email', '').strip().lower()
+        if not email:
+            return Response({'detail': 'Укажите email.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            student = User.objects.get(email=email, role='participant')
+        except User.DoesNotExist:
+            return Response(
+                {'detail': 'Участник с таким email не найден.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        if student.teacher and student.teacher != request.user:
+            return Response(
+                {'detail': 'Этот участник уже прикреплён к другому педагогу.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        student.teacher = request.user
+        student.save(update_fields=['teacher'])
+        return Response({'detail': f'{student.full_name} добавлен в ваш список учеников.'})
+
+
+class RemoveStudentView(APIView):
+    """DELETE /api/auth/my-students/<id>/remove/ — педагог отвязывает ученика."""
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        if request.user.role != 'teacher':
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        try:
+            student = User.objects.get(id=pk, teacher=request.user)
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        student.teacher = None
+        student.save(update_fields=['teacher'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ─── Password Reset ────────────────────────────────────────────────────────────
+
+class PasswordResetRequestView(APIView):
+    """
+    POST /api/auth/password-reset/
+    Тело: { "email": "user@example.com" }
+    Всегда возвращает 200 (не раскрываем факт существования email).
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+        if not email:
+            return Response({'detail': 'Укажите email.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email, is_active=True)
+            from django.contrib.auth.tokens import default_token_generator
+            from django.utils.encoding import force_bytes
+            from django.utils.http import urlsafe_base64_encode
+            from django.conf import settings
+            from apps.notifications.email_service import send_password_reset_email
+
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_link = f"{settings.FRONTEND_URL}/auth/reset-password?uid={uid}&token={token}"
+            send_password_reset_email(user, reset_link)
+        except User.DoesNotExist:
+            pass  # Молча игнорируем — не раскрываем наличие email
+
+        return Response({'detail': 'Если такой email зарегистрирован, письмо отправлено.'})
+
+
+class PasswordResetConfirmView(APIView):
+    """
+    POST /api/auth/password-reset/confirm/
+    Тело: { "uid": "...", "token": "...", "new_password": "..." }
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        uid = request.data.get('uid', '')
+        token = request.data.get('token', '')
+        new_password = request.data.get('new_password', '')
+
+        if not all([uid, token, new_password]):
+            return Response(
+                {'detail': 'Необходимы uid, token и new_password.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if len(new_password) < 8:
+            return Response(
+                {'detail': 'Пароль должен содержать минимум 8 символов.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.encoding import force_str
+        from django.utils.http import urlsafe_base64_decode
+
+        try:
+            pk = force_str(urlsafe_base64_decode(uid))
+            user = User.objects.get(pk=pk)
+        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+            return Response({'detail': 'Ссылка недействительна.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not default_token_generator.check_token(user, token):
+            return Response(
+                {'detail': 'Ссылка устарела или уже использована. Запросите новую.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(new_password)
+        user.save(update_fields=['password'])
+        return Response({'detail': 'Пароль успешно изменён. Войдите с новым паролем.'})

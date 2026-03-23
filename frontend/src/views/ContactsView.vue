@@ -39,33 +39,6 @@
           </div>
         </div>
 
-        <!-- Contact form -->
-        <div style="max-width:600px; margin:0 auto; background:white; padding:40px; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-          <h2 style="font-size:26px; color:var(--primary-dark); margin-bottom:25px;">Написать нам</h2>
-          <form @submit.prevent="sendMessage">
-            <div class="form-row">
-              <div class="form-group">
-                <label>Имя</label>
-                <input v-model="form.name" type="text" class="form-input" placeholder="Ваше имя" required>
-              </div>
-              <div class="form-group">
-                <label>Email</label>
-                <input v-model="form.email" type="email" class="form-input" placeholder="your@email.com" required>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Тема</label>
-              <input v-model="form.subject" type="text" class="form-input" placeholder="Тема обращения" required>
-            </div>
-            <div class="form-group">
-              <label>Сообщение</label>
-              <textarea v-model="form.message" class="form-input" rows="5" placeholder="Ваше сообщение..." style="resize:vertical;" required></textarea>
-            </div>
-            <div v-if="sent" style="background:#d1fae5; color:#065f46; padding:12px; border-radius:8px; margin-bottom:15px;">Сообщение отправлено! Мы свяжемся с вами в ближайшее время.</div>
-            <button type="submit" class="btn" style="background:var(--primary-blue); color:white; width:100%;">Отправить</button>
-          </form>
-        </div>
-
         <!-- FAQ -->
         <div style="max-width:700px; margin:60px auto 0;">
           <h2 class="section-title" style="margin-bottom:30px;">Частые вопросы</h2>
@@ -82,6 +55,34 @@
 
     <footer class="footer">
       <div class="container">
+        <div class="footer-content">
+          <div class="footer-column">
+            <h4>Школа финансовой культуры</h4>
+            <p>Платформа Сочинского государственного университета</p>
+          </div>
+          <div class="footer-column">
+            <h4>Мероприятия</h4>
+            <ul class="footer-links">
+              <li><RouterLink to="/events?type=olympiad">Олимпиады</RouterLink></li>
+              <li><RouterLink to="/events?type=competition">Конкурсы</RouterLink></li>
+              <li><RouterLink to="/documents">Документы</RouterLink></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h4>О платформе</h4>
+            <ul class="footer-links">
+              <li><RouterLink to="/about">О школе</RouterLink></li>
+              <li><RouterLink to="/contacts">Контакты</RouterLink></li>
+              <li><RouterLink to="/auth">Вход / Регистрация</RouterLink></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h4>Контакты</h4>
+            <p>info@finansy.ru</p>
+            <p>+7 (862) 123-45-67</p>
+            <p>г. Сочи, ул. Советская, 26а</p>
+          </div>
+        </div>
         <div class="footer-bottom">
           <p>© {{ new Date().getFullYear() }} Школа финансовой культуры. Сочинский государственный университет.</p>
         </div>
@@ -92,6 +93,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { RouterLink } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 
 const sent = ref(false)

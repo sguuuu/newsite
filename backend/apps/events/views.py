@@ -8,13 +8,15 @@ from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.users.permissions import IsAdmin, IsAdminOrReadOnly
-from .models import Event, EventRegistration, JuryAssignment
+from .models import Event, EventRegistration, JuryAssignment, EventStage, EventTask
 from .serializers import (
     EventListSerializer,
     EventDetailSerializer,
     EventCreateUpdateSerializer,
     EventRegistrationSerializer,
     JuryAssignmentSerializer,
+    EventStageSerializer,
+    EventTaskSerializer,
 )
 
 
@@ -39,6 +41,13 @@ class EventViewSet(ModelViewSet):
     search_fields = ['title', 'description']
     ordering_fields = ['start_date', 'end_date', 'created_at']
     ordering = ['-start_date']
+
+    def get_queryset(self):
+        qs = Event.objects.all()
+        if (self.request.query_params.get('my') == 'true'
+                and self.request.user.is_authenticated):
+            qs = qs.filter(registrations__participant=self.request.user)
+        return qs
 
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
@@ -84,14 +93,16 @@ class EventViewSet(ModelViewSet):
 
         reg = EventRegistration.objects.create(event=event, participant=user)
 
-        # Уведомление
+        # Уведомление в системе + email
         from apps.notifications.models import Notification
+        from apps.notifications.email_service import send_registration_email
         Notification.objects.create(
             recipient=user,
             title=f'Регистрация на "{event.title}"',
             message=f'Вы успешно зарегистрировались на мероприятие "{event.title}".',
             notif_type='registration',
         )
+        send_registration_email(user, event)
 
         return Response(
             EventRegistrationSerializer(reg).data,
@@ -258,3 +269,54 @@ class DashboardStatsView(generics.RetrieveAPIView):
             })
 
         return Response({})
+
+
+# ─── Stages ───────────────────────────────────────────────────────────────────
+
+class EventStageViewSet(ModelViewSet):
+    """
+    Этапы мероприятий.
+    GET    /api/events/stages/?event=<id>   — список этапов мероприятия
+    POST   /api/events/stages/              — создать этап (admin)
+    PUT    /api/events/stages/{id}/         — обновить (admin)
+    DELETE /api/events/stages/{id}/         — удалить (admin)
+    """
+    serializer_class = EventStageSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['event']
+
+    def get_permissions(self):
+        if self.action in ('list', 'retrieve'):
+            return [IsAuthenticated()]
+        return [IsAdmin()]
+
+    def get_queryset(self):
+        return EventStage.objects.prefetch_related('tasks').all()
+
+
+# ─── Tasks ────────────────────────────────────────────────────────────────────
+
+class EventTaskViewSet(ModelViewSet):
+    """
+    Задания этапов.
+    GET    /api/events/tasks/?stage=<id>   — список заданий этапа
+    POST   /api/events/tasks/              — создать задание (admin)
+    PUT    /api/events/tasks/{id}/         — обновить (admin)
+    DELETE /api/events/tasks/{id}/         — удалить (admin)
+    """
+    serializer_class = EventTaskSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['stage']
+
+    def get_permissions(self):
+        if self.action in ('list', 'retrieve'):
+            return [IsAuthenticated()]
+        return [IsAdmin()]
+
+    def get_queryset(self):
+        return EventTask.objects.all()
+
+    def perform_destroy(self, instance):
+        if instance.file:
+            instance.file.delete(save=False)
+        instance.delete()

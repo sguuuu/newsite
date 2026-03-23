@@ -132,3 +132,45 @@ class JuryAssignment(models.Model):
 
     def __str__(self):
         return f'Жюри {self.jury} → {self.event}'
+
+
+class EventStage(models.Model):
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE,
+        related_name='stages', verbose_name='Мероприятие'
+    )
+    title = models.CharField(max_length=255, verbose_name='Название этапа')
+    description = models.TextField(blank=True, verbose_name='Описание')
+    order = models.PositiveSmallIntegerField(default=1, verbose_name='Порядок')
+    start_date = models.DateField(null=True, blank=True, verbose_name='Дата начала')
+    end_date = models.DateField(null=True, blank=True, verbose_name='Дата окончания')
+
+    class Meta:
+        verbose_name = 'Этап'
+        verbose_name_plural = 'Этапы'
+        ordering = ['order']
+
+    def __str__(self):
+        return f'{self.event.title} — Этап {self.order}: {self.title}'
+
+
+class EventTask(models.Model):
+    stage = models.ForeignKey(
+        EventStage, on_delete=models.CASCADE,
+        related_name='tasks', verbose_name='Этап'
+    )
+    title = models.CharField(max_length=255, verbose_name='Название задания')
+    description = models.TextField(verbose_name='Условие задания')
+    order = models.PositiveSmallIntegerField(default=1, verbose_name='Порядок')
+    max_score = models.PositiveSmallIntegerField(default=100, verbose_name='Макс. балл')
+    file = models.FileField(
+        upload_to='tasks/', null=True, blank=True, verbose_name='Файл задания'
+    )
+
+    class Meta:
+        verbose_name = 'Задание'
+        verbose_name_plural = 'Задания'
+        ordering = ['order']
+
+    def __str__(self):
+        return f'Задание {self.order}: {self.title}'

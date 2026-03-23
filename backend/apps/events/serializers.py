@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from apps.users.serializers import UserListSerializer
-from .models import Event, EventRegistration, JuryAssignment
+from .models import Event, EventRegistration, JuryAssignment, EventStage, EventTask
 
 User = get_user_model()
 
@@ -82,8 +82,30 @@ class JuryAssignmentSerializer(serializers.ModelSerializer):
         write_only=True,
     )
     event_title = serializers.CharField(source='event.title', read_only=True)
+    event_status = serializers.CharField(source='event.status', read_only=True)
 
     class Meta:
         model = JuryAssignment
-        fields = ['id', 'jury', 'jury_id', 'event', 'event_title', 'assigned_at']
+        fields = ['id', 'jury', 'jury_id', 'event', 'event_title', 'event_status', 'assigned_at']
         read_only_fields = ['id', 'assigned_at']
+
+
+class EventTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventTask
+        fields = ['id', 'stage', 'title', 'description', 'order', 'max_score', 'file']
+        read_only_fields = ['id']
+
+    def validate_file(self, value):
+        if value and value.size > 10 * 1024 * 1024:
+            raise serializers.ValidationError('Размер файла не должен превышать 10 МБ.')
+        return value
+
+
+class EventStageSerializer(serializers.ModelSerializer):
+    tasks = EventTaskSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = EventStage
+        fields = ['id', 'event', 'title', 'description', 'order', 'start_date', 'end_date', 'tasks']
+        read_only_fields = ['id']

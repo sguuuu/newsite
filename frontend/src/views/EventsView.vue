@@ -72,7 +72,24 @@
             <div style="font-size:12px; color:var(--text-gray); margin-bottom:15px;">
               <span style="background:#f3f4f6; padding:2px 8px; border-radius:6px;">{{ movementLabel(event.movement_type) }}</span>
             </div>
-            <button class="btn btn-outline" @click.stop="router.push('/events/' + event.id)">Подробнее</button>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="btn btn-outline" @click.stop="router.push('/events/' + event.id)">Подробнее</button>
+              <!-- Не авторизован + мероприятие открыто -->
+              <RouterLink
+                v-if="!auth.isAuthenticated && (event.status === 'active' || event.status === 'upcoming')"
+                to="/auth"
+                class="btn btn-primary"
+                style="background:var(--primary-blue); color:white; text-decoration:none; font-size:13px;"
+                @click.stop
+              >Войти для участия</RouterLink>
+              <!-- Участник + мероприятие открыто -->
+              <button
+                v-else-if="auth.isAuthenticated && auth.user?.role === 'participant' && (event.status === 'active' || event.status === 'upcoming')"
+                class="btn btn-primary"
+                style="background:var(--primary-blue); color:white; font-size:13px;"
+                @click.stop="router.push('/events/' + event.id)"
+              >Записаться</button>
+            </div>
           </div>
         </div>
         <div v-else style="text-align:center; padding: 60px; color: var(--text-gray);">
@@ -123,9 +140,11 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import api from '@/api/index.js'
+import { useAuthStore } from '@/stores/auth.js'
 
 const router = useRouter()
 const route = useRoute()
+const auth = useAuthStore()
 const events = ref([])
 const loading = ref(false)
 
