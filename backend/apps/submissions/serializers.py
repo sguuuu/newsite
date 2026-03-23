@@ -9,24 +9,44 @@ class SubmissionSerializer(serializers.ModelSerializer):
     participant = UserListSerializer(read_only=True)
     jury = UserListSerializer(read_only=True)
     event_title = serializers.CharField(source='event.title', read_only=True)
+    participant_name = serializers.SerializerMethodField()
     file_size_kb = serializers.SerializerMethodField()
     has_evaluation = serializers.SerializerMethodField()
+    score = serializers.SerializerMethodField()
+    feedback = serializers.SerializerMethodField()
 
     class Meta:
         model = Submission
         fields = [
             'id', 'event', 'event_title', 'participant', 'jury',
+            'participant_name',
             'file', 'original_filename', 'file_size', 'file_size_kb',
             'status', 'submitted_at', 'has_evaluation',
+            'score', 'feedback',
             'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'participant', 'created_at', 'updated_at']
+
+    def get_participant_name(self, obj):
+        if obj.participant:
+            return obj.participant.full_name or obj.participant.email
+        return ''
 
     def get_file_size_kb(self, obj):
         return round(obj.file_size / 1024, 1)
 
     def get_has_evaluation(self, obj):
         return hasattr(obj, 'evaluation')
+
+    def get_score(self, obj):
+        if hasattr(obj, 'evaluation'):
+            return obj.evaluation.score
+        return None
+
+    def get_feedback(self, obj):
+        if hasattr(obj, 'evaluation'):
+            return obj.evaluation.feedback
+        return None
 
 
 class SubmissionUploadSerializer(serializers.ModelSerializer):
@@ -35,9 +55,9 @@ class SubmissionUploadSerializer(serializers.ModelSerializer):
         fields = ['event', 'file']
 
     def validate_file(self, value):
-        max_size = 20 * 1024 * 1024  # 20 МБ
+        max_size = 10 * 1024 * 1024  # 10 МБ
         if value.size > max_size:
-            raise serializers.ValidationError('Размер файла не должен превышать 20 МБ.')
+            raise serializers.ValidationError('Размер файла не должен превышать 10 МБ.')
         allowed = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.zip', '.rar']
         ext = '.' + value.name.split('.')[-1].lower()
         if ext not in allowed:

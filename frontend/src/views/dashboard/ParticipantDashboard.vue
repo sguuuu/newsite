@@ -37,15 +37,11 @@
               <div class="stat-icon" style="background:#fef3c7;color:#92400e"><svg class="icon"><use href="#ic-check-circle"/></svg></div>
               <div class="stat-info"><h3>{{ evaluatedCount }}</h3><p>Проверено</p></div>
             </div>
-            <div class="stat-card">
-              <div class="stat-icon" style="background:#fce7f3;color:#9f1239"><svg class="icon"><use href="#ic-trophy"/></svg></div>
-              <div class="stat-info"><h3>{{ prizes }}</h3><p>Призовых мест</p></div>
-            </div>
           </div>
           <div class="section-grid">
             <div class="section-card">
               <h2>Ближайшие мероприятия</h2>
-              <div v-for="ev in myEvents.slice(0,3)" :key="ev.id" class="event-item">
+              <div v-for="ev in myEvents.filter(ev => !['completed','cancelled'].includes(effectiveStatus(ev))).slice(0,3)" :key="ev.id" class="event-item">
                 <span class="event-badge" :class="statusClass(effectiveStatus(ev))">{{ statusLabel(effectiveStatus(ev)) }}</span>
                 <h4>{{ ev.title }}</h4>
                 <p>Дедлайн: {{ formatDate(ev.registration_deadline) }}</p>
@@ -66,20 +62,43 @@
         <!-- Мои мероприятия -->
         <div v-show="activeTab === 'events'">
           <div class="dashboard-header"><h1>Мои мероприятия</h1></div>
-          <div v-for="ev in myEvents" :key="ev.id" class="event-item">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-              <div>
-                <span class="event-badge" :class="statusClass(effectiveStatus(ev))" style="margin-bottom:8px;display:inline-block">{{ statusLabel(effectiveStatus(ev)) }}</span>
-                <h4>{{ ev.title }}</h4>
-                <p>{{ formatDate(ev.start_date) }} — {{ formatDate(ev.end_date) }}</p>
+<<<<<<< HEAD
+
+          <!-- Активные и предстоящие -->
+          <template v-if="activeMyEvents.length">
+            <div v-for="ev in activeMyEvents" :key="ev.id" class="event-item">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <span class="event-badge" :class="statusClass(effectiveStatus(ev))" style="margin-bottom:8px;display:inline-block">{{ statusLabel(effectiveStatus(ev)) }}</span>
+                  <h4>{{ ev.title }}</h4>
+                  <p>{{ formatDate(ev.start_date) }} — {{ formatDate(ev.end_date) }}</p>
+                </div>
+                <button class="btn-small btn-outline" @click="$router.push('/events/' + ev.id)">Подробнее</button>
               </div>
-              <button class="btn-small btn-outline" @click="$router.push('/events/' + ev.id)">Подробнее</button>
             </div>
-          </div>
-          <div v-if="!myEvents.length" style="text-align:center;padding:60px;color:var(--text-gray);">
+          </template>
+          <div v-else-if="!myEvents.length" style="text-align:center;padding:60px;color:var(--text-gray);">
             <p>Вы ещё не зарегистрированы ни на одно мероприятие</p>
             <button class="btn" style="background:var(--primary-blue);color:white;margin-top:20px;" @click="$router.push('/events')">Найти мероприятие</button>
           </div>
+
+          <!-- Завершённые -->
+          <template v-if="completedMyEvents.length">
+            <div style="margin-top:30px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+              <h3 style="font-size:16px;font-weight:600;color:#991b1b;">Завершённые мероприятия</h3>
+              <span style="display:inline-block;width:8px;height:8px;background:#991b1b;border-radius:50%;"></span>
+            </div>
+            <div v-for="ev in completedMyEvents" :key="ev.id" class="event-item" style="border-left:3px solid #fca5a5;opacity:0.85;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <span class="event-badge" style="background:#fee2e2;color:#991b1b;margin-bottom:8px;display:inline-block;">Завершено</span>
+                  <h4>{{ ev.title }}</h4>
+                  <p>{{ formatDate(ev.start_date) }} — {{ formatDate(ev.end_date) }}</p>
+                </div>
+                <button class="btn-small btn-outline" @click="$router.push('/events/' + ev.id)">Подробнее</button>
+              </div>
+            </div>
+          </template>
         </div>
 
         <!-- Мои работы -->
@@ -101,7 +120,7 @@
                 <label>Файл работы</label>
                 <input type="file" class="form-input" @change="onFileChange" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar" required />
                 <p style="font-size:12px;color:var(--text-gray);margin-top:4px;">
-                  Допустимые форматы: PDF, Word (.doc/.docx), Excel (.xls/.xlsx), ZIP, RAR. Макс. размер: 20 МБ.
+                  Допустимые форматы: PDF, Word (.doc/.docx), Excel (.xls/.xlsx), ZIP, RAR. Макс. размер: 10 МБ.
                 </p>
               </div>
               <div v-if="uploadError" style="color:#991b1b;background:#fef2f2;padding:10px;border-radius:8px;font-size:14px;">{{ uploadError }}</div>
@@ -141,15 +160,42 @@
           <div v-if="!submissions.length" style="text-align:center;padding:40px;color:var(--text-gray);">Вы ещё не загружали работы</div>
         </div>
 
-        <!-- Результаты -->
-        <div v-show="activeTab === 'results'">
-          <div class="dashboard-header"><h1>Мои результаты</h1></div>
-          <div class="achievements-grid">
-            <div class="achievement-card gold"><div class="achievement-icon"><svg class="icon" style="width:40px;height:40px;color:#d97706"><use href="#ic-medal"/></svg></div><h3>{{ gold }}</h3><p>Золото</p></div>
-            <div class="achievement-card silver"><div class="achievement-icon"><svg class="icon" style="width:40px;height:40px;color:#6b7280"><use href="#ic-medal"/></svg></div><h3>{{ silver }}</h3><p>Серебро</p></div>
-            <div class="achievement-card bronze"><div class="achievement-icon"><svg class="icon" style="width:40px;height:40px;color:#b45309"><use href="#ic-medal"/></svg></div><h3>{{ bronze }}</h3><p>Бронза</p></div>
+        <!-- Задания -->
+        <div v-show="activeTab === 'tasks'">
+          <div class="dashboard-header"><h1>Задания</h1></div>
+
+          <!-- Event selector -->
+          <div style="margin-bottom:24px;">
+            <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px;">Выберите мероприятие</label>
+            <select v-model="selectedTasksEvent" class="form-input" style="max-width:400px;" @change="loadEventStages">
+              <option value="">— Выберите мероприятие —</option>
+              <option v-for="ev in activeMyEvents" :key="ev.id" :value="ev.id">{{ ev.title }}</option>
+            </select>
           </div>
-          <div v-if="!results.length" style="text-align:center;padding:60px;color:var(--text-gray);">Результатов пока нет</div>
+
+          <div v-if="stagesLoading" style="text-align:center;padding:40px;color:var(--text-gray);">Загрузка...</div>
+          <div v-else-if="!selectedTasksEvent" style="text-align:center;padding:60px;color:var(--text-gray);">Выберите мероприятие для просмотра заданий</div>
+          <div v-else-if="!eventStages.length" style="text-align:center;padding:60px;color:var(--text-gray);">Заданий для этого мероприятия пока нет</div>
+
+          <div v-for="stage in eventStages" :key="stage.id" style="margin-bottom:24px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+            <div style="background:var(--gradient-hero);padding:16px 20px;color:white;">
+              <div style="font-weight:700;font-size:16px;">Этап {{ stage.order }}: {{ stage.title }}</div>
+              <div v-if="stage.start_date" style="font-size:13px;opacity:0.85;margin-top:4px;">{{ formatDate(stage.start_date) }} — {{ formatDate(stage.end_date) }}</div>
+              <div v-if="stage.description" style="font-size:13px;opacity:0.85;margin-top:4px;">{{ stage.description }}</div>
+            </div>
+            <div v-if="!stage.tasks?.length" style="padding:20px;font-size:14px;color:var(--text-gray);text-align:center;">Заданий нет</div>
+            <div v-for="task in stage.tasks" :key="task.id" style="padding:18px 20px;border-top:1px solid #e5e7eb;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                <h4 style="font-size:15px;font-weight:600;color:var(--primary-dark);">{{ task.order }}. {{ task.title }}</h4>
+                <span style="background:#eff6ff;color:#1e40af;font-size:12px;padding:3px 10px;border-radius:20px;white-space:nowrap;margin-left:12px;">{{ task.max_score }} баллов</span>
+              </div>
+              <p style="font-size:14px;color:var(--text-dark);line-height:1.7;white-space:pre-wrap;">{{ task.description }}</p>
+              <a v-if="task.file" :href="task.file" target="_blank"
+                style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;color:var(--primary-blue);text-decoration:none;background:#eff6ff;padding:6px 14px;border-radius:8px;">
+                <svg class="icon icon-sm"><use href="#ic-download"/></svg>Скачать файл задания
+              </a>
+            </div>
+          </div>
         </div>
 
         <!-- Уведомления -->
@@ -180,6 +226,14 @@
                 <div class="form-group"><label>Телефон</label><input v-model="profileForm.phone" type="tel" class="form-input"></div>
               </div>
               <div class="form-group"><label>Учреждение</label><input v-model="profileForm.institution" type="text" class="form-input"></div>
+              <div class="form-group">
+                <label>Мой педагог (куратор)</label>
+                <select v-model="profileForm.teacher_id" class="form-input">
+                  <option :value="null">— Не указан —</option>
+                  <option v-for="t in teachersList" :key="t.id" :value="t.id">{{ t.full_name }} {{ t.institution ? '(' + t.institution + ')' : '' }}</option>
+                </select>
+                <p style="font-size:12px;color:var(--text-gray);margin-top:4px;">Педагог сможет отслеживать ваш прогресс в мероприятиях</p>
+              </div>
               <div v-if="profileSaved" style="color:#065f46;padding:10px;background:#d1fae5;border-radius:8px;margin-bottom:15px;">Профиль сохранён!</div>
               <button type="submit" class="btn" style="background:var(--primary-blue);color:white;">Сохранить</button>
             </form>
@@ -203,9 +257,8 @@ const activeTab = ref('overview')
 const tabs = [
   { id: 'overview', label: 'Обзор', icon: 'chart-bar' },
   { id: 'events', label: 'Мои мероприятия', icon: 'calendar' },
+  { id: 'tasks', label: 'Задания', icon: 'document' },
   { id: 'submissions', label: 'Мои работы', icon: 'upload' },
-  { id: 'results', label: 'Результаты', icon: 'trophy' },
-  { id: 'notifications', label: 'Уведомления', icon: 'mail' },
   { id: 'profile', label: 'Профиль', icon: 'user' }
 ]
 
@@ -226,8 +279,33 @@ const uploadError = ref('')
 const uploadSuccess = ref('')
 const activeEvents = computed(() => myEvents.value.filter(ev => ['active', 'upcoming'].includes(effectiveStatus(ev))))
 
+const selectedTasksEvent = ref('')
+const eventStages = ref([])
+const stagesLoading = ref(false)
+
+async function loadEventStages() {
+  if (!selectedTasksEvent.value) { eventStages.value = []; return }
+  stagesLoading.value = true
+  try {
+    const r = await api.get(`/api/events/stages/?event=${selectedTasksEvent.value}`)
+    eventStages.value = r.data.results || r.data
+  } catch {
+    eventStages.value = []
+  } finally {
+    stagesLoading.value = false
+  }
+}
+
 function onFileChange(e) {
-  uploadForm.value.file = e.target.files[0] || null
+  const file = e.target.files[0] || null
+  if (file && file.size > 10 * 1024 * 1024) {
+    uploadError.value = 'Файл превышает 10 МБ. Выберите файл меньшего размера.'
+    e.target.value = ''
+    uploadForm.value.file = null
+    return
+  }
+  uploadError.value = ''
+  uploadForm.value.file = file
 }
 
 async function uploadSubmission() {
@@ -264,15 +342,19 @@ async function submitWork(s) {
 }
 
 const profileSaved = ref(false)
+const teachersList = ref([])
 const profileForm = ref({
   first_name: auth.user?.first_name || '',
   last_name: auth.user?.last_name || '',
   patronymic: auth.user?.patronymic || '',
   email: auth.user?.email || '',
   phone: auth.user?.phone || '',
-  institution: auth.user?.institution || ''
+  institution: auth.user?.institution || '',
+  teacher_id: auth.user?.teacher_id ?? null
 })
 
+const activeMyEvents = computed(() => myEvents.value.filter(ev => effectiveStatus(ev) !== 'completed' && effectiveStatus(ev) !== 'cancelled'))
+const completedMyEvents = computed(() => myEvents.value.filter(ev => effectiveStatus(ev) === 'completed' || effectiveStatus(ev) === 'cancelled'))
 const evaluatedCount = computed(() => submissions.value.filter(s => s.status === 'evaluated').length)
 const prizes = computed(() => results.value.filter(r => r.place > 0 && r.place <= 3).length)
 const gold = computed(() => results.value.filter(r => r.place === 1).length)
@@ -284,7 +366,8 @@ onMounted(async () => {
     api.get('/api/events/?my=true').then(r => { myEvents.value = r.data.results || r.data }).catch(() => {}),
     api.get('/api/submissions/').then(r => { submissions.value = r.data.results || r.data }).catch(() => {}),
     api.get('/api/notifications/').then(r => { notifications.value = r.data.results || r.data }).catch(() => {}),
-    api.get('/api/submissions/results/').then(r => { results.value = r.data.results || r.data }).catch(() => {})
+    api.get('/api/submissions/results/').then(r => { results.value = r.data.results || r.data }).catch(() => {}),
+    api.get('/api/auth/teachers/').then(r => { teachersList.value = r.data.results || r.data }).catch(() => {})
   ])
 })
 

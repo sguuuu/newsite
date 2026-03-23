@@ -90,20 +90,44 @@
           <div v-if="!submissions.length" style="text-align:center;padding:60px;color:var(--text-gray);">Нет работ</div>
         </div>
 
-        <!-- История оценок -->
-        <div v-show="activeTab === 'history'">
-          <div class="dashboard-header"><h1>История оценок</h1></div>
-          <div class="submissions-list">
-            <div v-for="e in evaluations" :key="e.id" class="submission-card checked">
-              <div class="submission-header">
-                <div><h3>{{ e.participant_name }}</h3><p style="color:var(--text-gray);font-size:14px;">{{ e.event_title }}</p></div>
-                <div class="score-display"><span class="score" style="font-size:32px;">{{ e.score }}</span><span class="max-score" style="font-size:18px;">/100</span></div>
+        <!-- Задания -->
+        <div v-show="activeTab === 'tasks'">
+          <div class="dashboard-header"><h1>Задания мероприятий</h1></div>
+
+          <!-- Event selector -->
+          <div style="margin-bottom:24px;">
+            <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px;">Выберите мероприятие</label>
+            <select v-model="jurySelectedEvent" class="form-input" style="max-width:400px;" @change="loadJuryStages">
+              <option value="">— Выберите мероприятие —</option>
+              <option v-for="a in assignments.filter(a => ['active','upcoming'].includes(a.event_status))" :key="a.id" :value="a.event">{{ a.event_title }}</option>
+            </select>
+          </div>
+
+          <div v-if="juryStagesLoading" style="text-align:center;padding:40px;color:var(--text-gray);">Загрузка...</div>
+          <div v-else-if="!jurySelectedEvent" style="text-align:center;padding:60px;color:var(--text-gray);">Выберите мероприятие для просмотра заданий</div>
+          <div v-else-if="!juryStages.length" style="text-align:center;padding:60px;color:var(--text-gray);">Заданий для этого мероприятия пока нет</div>
+
+          <div v-for="stage in juryStages" :key="stage.id" style="margin-bottom:24px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+            <div style="background:var(--gradient-hero);padding:16px 20px;color:white;">
+              <div style="font-weight:700;font-size:16px;">Этап {{ stage.order }}: {{ stage.title }}</div>
+              <div v-if="stage.start_date" style="font-size:13px;opacity:0.85;margin-top:4px;">{{ formatDate(stage.start_date) }} — {{ formatDate(stage.end_date) }}</div>
+              <div v-if="stage.description" style="font-size:13px;opacity:0.85;margin-top:4px;">{{ stage.description }}</div>
+            </div>
+            <div v-if="!stage.tasks?.length" style="padding:20px;font-size:14px;color:var(--text-gray);text-align:center;">Заданий нет</div>
+            <div v-for="task in stage.tasks" :key="task.id" style="padding:18px 20px;border-top:1px solid #e5e7eb;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                <h4 style="font-size:15px;font-weight:600;color:var(--primary-dark);">{{ task.order }}. {{ task.title }}</h4>
+                <span style="background:#eff6ff;color:#1e40af;font-size:12px;padding:3px 10px;border-radius:20px;white-space:nowrap;margin-left:12px;">{{ task.max_score }} баллов</span>
               </div>
-              <div v-if="e.feedback" style="background:#f9fafb;padding:12px;border-radius:8px;font-size:14px;color:var(--text-gray);margin-top:10px;">{{ e.feedback }}</div>
+              <p style="font-size:14px;color:var(--text-dark);line-height:1.7;white-space:pre-wrap;">{{ task.description }}</p>
+              <a v-if="task.file" :href="task.file" target="_blank"
+                style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;color:var(--primary-blue);text-decoration:none;background:#eff6ff;padding:6px 14px;border-radius:8px;">
+                <svg class="icon icon-sm"><use href="#ic-download"/></svg>Скачать файл задания
+              </a>
             </div>
           </div>
-          <div v-if="!evaluations.length" style="text-align:center;padding:60px;color:var(--text-gray);">Нет оценённых работ</div>
         </div>
+
 
         <!-- Профиль -->
         <div v-show="activeTab === 'profile'">
@@ -152,7 +176,6 @@
         <div v-if="evalError" style="color:#ef4444;padding:10px;background:#fef2f2;border-radius:8px;margin-bottom:15px;">{{ evalError }}</div>
         <div style="display:flex;gap:10px;">
           <button class="btn" style="background:var(--primary-blue);color:white;flex:1;" @click="submitEval(false)">Опубликовать</button>
-          <button class="btn btn-outline" style="flex:1;" @click="submitEval(true)">Сохранить черновик</button>
         </div>
       </div>
     </div>
@@ -170,7 +193,7 @@ const activeTab = ref('overview')
 const tabs = [
   { id: 'overview', label: 'Обзор', icon: 'chart-bar' },
   { id: 'submissions', label: 'Проверка работ', icon: 'pen' },
-  { id: 'history', label: 'История', icon: 'clipboard' },
+  { id: 'tasks', label: 'Задания', icon: 'document' },
   { id: 'profile', label: 'Профиль', icon: 'user' }
 ]
 const initials = computed(() => {
@@ -201,6 +224,23 @@ const criteria = [
 const pendingSubmissions = computed(() => submissions.value.filter(s => s.status !== 'evaluated'))
 const pendingCount = computed(() => pendingSubmissions.value.length)
 const doneCount = computed(() => submissions.value.filter(s => s.status === 'evaluated').length)
+
+const jurySelectedEvent = ref('')
+const juryStages = ref([])
+const juryStagesLoading = ref(false)
+
+async function loadJuryStages() {
+  if (!jurySelectedEvent.value) { juryStages.value = []; return }
+  juryStagesLoading.value = true
+  try {
+    const r = await api.get(`/api/events/stages/?event=${jurySelectedEvent.value}`)
+    juryStages.value = r.data.results || r.data
+  } catch {
+    juryStages.value = []
+  } finally {
+    juryStagesLoading.value = false
+  }
+}
 const avgScore = computed(() => {
   const scored = evaluations.value.filter(e => e.score !== null)
   if (!scored.length) return '—'
@@ -210,7 +250,8 @@ const avgScore = computed(() => {
 onMounted(async () => {
   await Promise.allSettled([
     api.get('/api/submissions/').then(r => { submissions.value = r.data.results || r.data }).catch(() => {}),
-    api.get('/api/submissions/evaluations/').then(r => { evaluations.value = r.data.results || r.data }).catch(() => {})
+    api.get('/api/submissions/evaluations/').then(r => { evaluations.value = r.data.results || r.data }).catch(() => {}),
+    api.get('/api/events/jury-assignments/').then(r => { assignments.value = r.data.results || r.data }).catch(() => {})
   ])
 })
 

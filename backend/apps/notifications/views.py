@@ -41,3 +41,61 @@ class NotificationViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
     def unread_count(self, request):
         count = self.get_queryset().filter(is_read=False).count()
         return Response({'unread': count})
+
+    @action(detail=False, methods=['post'])
+    def check_deadlines(self, request):
+        """
+        POST /api/notifications/check-deadlines/
+        Создаёт уведомления о приближающихся дедлайнах для текущего пользователя.
+        Вызывается с фронтенда при входе и периодически.
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+        from apps.events.models import EventRegistration
+
+        user = request.user
+        if user.role != 'participant':
+            return Response({'created': 0})
+
+        today = timezone.now().date()
+        created = 0
+
+        # Регистрации на активные/предстоящие мероприятия с дедлайном
+        registrations = EventRegistration.objects.filter(
+            participant=user,
+            status__in=['registered', 'active'],
+            event__status__in=['active', 'upcoming'],
+            event__registration_deadline__isnull=False,
+        ).select_related('event')
+
+        for reg in registrations:
+            deadline = reg.event.registration_deadline
+            if hasattr(deadline, 'date'):
+                deadline_date = deadline.date()
+            else:
+                deadline_date = deadline
+
+            days_left = (deadline_date - today).days
+
+            if days_left not in (7, 3, 1):
+                continue
+
+            # Не создавать дубли — проверяем по заголовку и получателю
+            title = f'Дедлайн через {days_left} дн.: «{reg.event.title}»'
+            already_exists = Notification.objects.filter(
+                recipient=user,
+                notif_type='deadline',
+                title=title,
+            ).exists()
+            if already_exists:
+                continue
+
+            Notification.objects.create(
+                recipient=user,
+                title=title,
+                message=f'До окончания приёма работ по «{reg.event.title}» осталось {days_left} дн. Не забудьте загрузить работу.',
+                notif_type='deadline',
+            )
+            created += 1
+
+        return Response({'created': created})

@@ -14,7 +14,15 @@
                 <h1 style="font-size:32px; color:var(--primary-dark); margin-bottom:10px;">{{ event.title }}</h1>
                 <p style="color:var(--text-gray); font-size:16px;">{{ typeLabel(event.event_type) }} • {{ formatLabel(event.format) }}</p>
               </div>
-              <div v-if="canRegister">
+              <!-- Не авторизован -->
+              <div v-if="!auth.isAuthenticated && isOpenEvent">
+                <RouterLink to="/auth" class="btn btn-primary" style="background:var(--primary-blue); color:white; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+                  <svg class="icon" style="width:16px;height:16px"><use href="#ic-user"/></svg>
+                  Войти для участия
+                </RouterLink>
+              </div>
+              <!-- Авторизован как участник -->
+              <div v-else-if="canRegister">
                 <button v-if="!isRegistered" class="btn btn-primary" style="background:var(--primary-blue); color:white;" @click="register" :disabled="regLoading">
                   {{ regLoading ? 'Регистрируем...' : 'Записаться' }}
                 </button>
@@ -107,7 +115,8 @@ const regError = ref('')
 const regSuccess = ref('')
 const eventDocs = ref([])
 
-const canRegister = computed(() => auth.isAuthenticated && auth.user?.role === 'participant' && (event.value?.status === 'active' || event.value?.status === 'upcoming'))
+const isOpenEvent = computed(() => event.value?.status === 'active' || event.value?.status === 'upcoming')
+const canRegister = computed(() => auth.isAuthenticated && auth.user?.role === 'participant' && isOpenEvent.value)
 
 onMounted(async () => {
   loading.value = true

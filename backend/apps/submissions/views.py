@@ -48,7 +48,12 @@ class SubmissionViewSet(ModelViewSet):
         if user.role == 'admin':
             return Submission.objects.select_related('event', 'participant', 'jury').all()
         if user.role == 'jury':
-            return Submission.objects.filter(jury=user).select_related('event', 'participant')
+            from apps.events.models import JuryAssignment
+            event_ids = JuryAssignment.objects.filter(jury=user).values_list('event_id', flat=True)
+            return Submission.objects.filter(
+                event__in=event_ids,
+                status__in=['submitted', 'under_review', 'evaluated']
+            ).select_related('event', 'participant')
         if user.role == 'teacher':
             return Submission.objects.filter(
                 participant__teacher=user
@@ -160,6 +165,7 @@ class EvaluationViewSet(ModelViewSet):
         submission.save(update_fields=['status'])
 
         from apps.notifications.models import Notification
+        from apps.notifications.email_service import send_evaluation_email
         Notification.objects.create(
             recipient=submission.participant,
             title='Ваша работа проверена',
@@ -168,6 +174,12 @@ class EvaluationViewSet(ModelViewSet):
                 f'Балл: {evaluation.score}/100.'
             ),
             notif_type='evaluation',
+        )
+        send_evaluation_email(
+            submission.participant,
+            submission.event,
+            evaluation.score,
+            evaluation.feedback,
         )
 
     @action(detail=True, methods=['post'], permission_classes=[IsJury])

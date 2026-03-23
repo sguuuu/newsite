@@ -29,11 +29,16 @@ backend/.env
 .vscode/
 *.iml
 
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
 # Прочее
 gitt/
 *.log
 .DS_Store
 Thumbs.db
+img.png
 
 *.zip
 frontend/node_modules/

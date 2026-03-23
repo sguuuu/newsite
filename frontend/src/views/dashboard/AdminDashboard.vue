@@ -231,6 +231,7 @@
               </div>
               <div class="event-actions">
                 <button class="btn-small btn-outline" @click="openEditEvent(ev)">Редактировать</button>
+                <button class="btn-small btn-outline" @click="openStagesModal(ev)" style="border-color:var(--primary-blue);color:var(--primary-blue);">Этапы и задания</button>
                 <button class="btn-small btn-danger" @click="deleteEvent(ev.id)">Удалить</button>
               </div>
             </div>
@@ -450,6 +451,131 @@
     </div>
   </div>
 
+  <!-- ====== МОДАЛКА: ЭТАПЫ И ЗАДАНИЯ ====== -->
+  <div v-if="showStagesModal" class="modal-overlay" @click.self="closeStagesModal">
+    <div class="modal-box" style="max-width:750px;">
+      <div class="modal-head">
+        <h2>Этапы и задания: {{ stagesEvent?.title }}</h2>
+        <button class="modal-close" @click="closeStagesModal">✕</button>
+      </div>
+
+      <!-- Stage form -->
+      <div style="background:#f8fafc;border-radius:10px;padding:20px;margin-bottom:24px;">
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:14px;">{{ editingStage ? 'Редактировать этап' : 'Добавить этап' }}</h3>
+        <div class="form-row">
+          <div class="form-group" style="flex:2">
+            <label>Название этапа *</label>
+            <input v-model="stageForm.title" type="text" class="form-input" placeholder="Например: Отборочный тур">
+          </div>
+          <div class="form-group">
+            <label>Порядок</label>
+            <input v-model.number="stageForm.order" type="number" min="1" class="form-input">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Дата начала</label>
+            <input v-model="stageForm.start_date" type="date" class="form-input">
+          </div>
+          <div class="form-group">
+            <label>Дата окончания</label>
+            <input v-model="stageForm.end_date" type="date" class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Описание</label>
+          <textarea v-model="stageForm.description" class="form-input" rows="2" placeholder="Краткое описание этапа..."></textarea>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:4px;">
+          <button class="btn" style="background:var(--primary-blue);color:white;" @click="saveStage">{{ editingStage ? 'Сохранить' : 'Добавить этап' }}</button>
+          <button v-if="editingStage" class="btn btn-outline" @click="cancelEditStage">Отмена</button>
+        </div>
+      </div>
+
+      <!-- Stages list -->
+      <div v-if="!stages.length" style="text-align:center;padding:30px;color:var(--text-gray);">Этапов ещё нет</div>
+      <div v-for="stage in stages" :key="stage.id" style="border:1px solid #e5e7eb;border-radius:12px;margin-bottom:16px;overflow:hidden;">
+        <!-- Stage header -->
+        <div style="background:#f1f5f9;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <span style="font-weight:600;color:var(--primary-dark);">Этап {{ stage.order }}: {{ stage.title }}</span>
+            <span v-if="stage.start_date" style="font-size:13px;color:var(--text-gray);margin-left:12px;">{{ formatDate(stage.start_date) }} — {{ formatDate(stage.end_date) }}</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-icon" @click="startEditStage(stage)"><svg class="icon"><use href="#ic-edit"/></svg></button>
+            <button class="btn-icon btn-icon-danger" @click="deleteStage(stage.id)"><svg class="icon"><use href="#ic-trash"/></svg></button>
+          </div>
+        </div>
+        <div v-if="stage.description" style="padding:8px 18px;font-size:13px;color:var(--text-gray);border-bottom:1px solid #e5e7eb;">{{ stage.description }}</div>
+
+        <!-- Tasks -->
+        <div style="padding:14px 18px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <span style="font-size:14px;font-weight:600;">Задания</span>
+            <button class="btn-small btn-outline" style="font-size:12px;" @click="openAddTask(stage)">+ Добавить задание</button>
+          </div>
+          <div v-if="!stage.tasks?.length" style="font-size:13px;color:var(--text-gray);padding:6px 0;">Заданий нет</div>
+          <div v-for="task in stage.tasks" :key="task.id" style="background:#fafafa;border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;">
+            <div style="flex:1;">
+              <div style="font-weight:600;font-size:14px;margin-bottom:4px;">{{ task.order }}. {{ task.title }}</div>
+              <div style="font-size:13px;color:var(--text-gray);line-height:1.5;">{{ task.description }}</div>
+              <div style="font-size:12px;color:var(--primary-blue);margin-top:4px;">Макс. балл: {{ task.max_score }}</div>
+            </div>
+            <div style="display:flex;gap:6px;margin-left:12px;flex-shrink:0;">
+              <button class="btn-icon" @click="startEditTask(task, stage)"><svg class="icon"><use href="#ic-edit"/></svg></button>
+              <button class="btn-icon btn-icon-danger" @click="deleteTask(task.id, stage)"><svg class="icon"><use href="#ic-trash"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== МОДАЛКА: ЗАДАНИЕ ====== -->
+  <div v-if="showTaskModal" class="modal-overlay" @click.self="showTaskModal = false">
+    <div class="modal-box" style="max-width:560px;">
+      <div class="modal-head">
+        <h2>{{ editingTask ? 'Редактировать задание' : 'Добавить задание' }}</h2>
+        <button class="modal-close" @click="showTaskModal = false">✕</button>
+      </div>
+      <div class="modal-form">
+        <div class="form-row">
+          <div class="form-group" style="flex:3">
+            <label>Название задания *</label>
+            <input v-model="taskForm.title" type="text" class="form-input" placeholder="Название задания">
+          </div>
+          <div class="form-group">
+            <label>Порядок</label>
+            <input v-model.number="taskForm.order" type="number" min="1" class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Условие задания *</label>
+          <textarea v-model="taskForm.description" class="form-input" rows="5" placeholder="Подробное условие задания..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Максимальный балл</label>
+          <input v-model.number="taskForm.max_score" type="number" min="1" max="1000" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Файл задания <span style="font-weight:400;color:var(--text-gray);">(необязательно)</span></label>
+          <input type="file" class="form-input" @change="onTaskFileChange"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.txt,.png,.jpg,.jpeg">
+          <p style="font-size:12px;color:var(--text-gray);margin-top:4px;">PDF, Word, Excel, изображения, архивы. Макс. размер: 10 МБ.</p>
+          <div v-if="editingTask?.file" style="margin-top:6px;font-size:13px;display:flex;align-items:center;gap:8px;">
+            <span style="color:var(--text-gray);">Текущий файл:</span>
+            <a :href="editingTask.file" target="_blank" style="color:var(--primary-blue);text-decoration:underline;">скачать</a>
+          </div>
+        </div>
+        <div v-if="taskError" style="color:#ef4444;background:#fef2f2;padding:10px;border-radius:8px;margin-bottom:12px;">{{ taskError }}</div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn" style="background:var(--primary-blue);color:white;flex:1;" @click="saveTask">{{ editingTask ? 'Сохранить' : 'Добавить' }}</button>
+          <button class="btn btn-outline" @click="showTaskModal = false">Отмена</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ====== МОДАЛКА: ПОЛЬЗОВАТЕЛЬ ====== -->
   <div v-if="showUserModal" class="modal-overlay" @click.self="closeUserModal">
     <div class="modal-box">
@@ -513,6 +639,15 @@
           <div class="form-group">
             <label>Класс / Должность</label>
             <input v-model="userForm.grade_or_position" type="text" class="form-input" placeholder="Например: 10А или Учитель математики">
+          </div>
+        </div>
+        <div v-if="userForm.role === 'participant'" class="form-row">
+          <div class="form-group">
+            <label>Педагог (куратор)</label>
+            <select v-model="userForm.teacher_id" class="form-input">
+              <option :value="null">— Не назначен —</option>
+              <option v-for="t in teacherUsers" :key="t.id" :value="t.id">{{ t.full_name || t.email }}</option>
+            </select>
           </div>
         </div>
         <div v-if="!editingUser" class="form-row">
@@ -592,6 +727,7 @@ const filteredEvents = computed(() =>
 
 // ---- Jury ----
 const juryUsers = ref([])
+const teacherUsers = ref([])
 const juryAssignments = ref([])
 const juryForm = ref({ event: '', jury: '' })
 
@@ -608,6 +744,148 @@ const contentItems = [
   { key: 'users', title: 'Пользователи', desc: 'Управление учётными записями участников, педагогов и жюри', adminUrl: 'http://localhost:8000/admin/users/user/' },
   { key: 'submissions', title: 'Работы участников', desc: 'Просмотр и управление присланными работами', adminUrl: 'http://localhost:8000/admin/submissions/submission/' }
 ]
+
+// ── Stages & Tasks ────────────────────────────────────────────────────────────
+const showStagesModal = ref(false)
+const stagesEvent = ref(null)
+const stages = ref([])
+const editingStage = ref(null)
+const stageForm = ref({ title: '', description: '', order: 1, start_date: '', end_date: '' })
+
+const showTaskModal = ref(false)
+const editingTask = ref(null)
+const taskStage = ref(null)
+const taskForm = ref({ title: '', description: '', order: 1, max_score: 100 })
+const taskError = ref('')
+
+async function openStagesModal(ev) {
+  stagesEvent.value = ev
+  editingStage.value = null
+  stageForm.value = { title: '', description: '', order: 1, start_date: '', end_date: '' }
+  await loadStages(ev.id)
+  showStagesModal.value = true
+}
+
+function closeStagesModal() {
+  showStagesModal.value = false
+  stagesEvent.value = null
+  stages.value = []
+}
+
+async function loadStages(eventId) {
+  try {
+    const r = await api.get(`/api/events/stages/?event=${eventId}`)
+    stages.value = r.data.results || r.data
+  } catch {}
+}
+
+async function saveStage() {
+  if (!stageForm.value.title.trim()) return
+  try {
+    const payload = { ...stageForm.value, event: stagesEvent.value.id }
+    if (!payload.start_date) delete payload.start_date
+    if (!payload.end_date) delete payload.end_date
+    if (editingStage.value) {
+      const r = await api.put(`/api/events/stages/${editingStage.value.id}/`, payload)
+      const idx = stages.value.findIndex(s => s.id === editingStage.value.id)
+      if (idx !== -1) stages.value[idx] = { ...stages.value[idx], ...r.data }
+    } else {
+      const r = await api.post('/api/events/stages/', payload)
+      stages.value.push({ ...r.data, tasks: [] })
+    }
+    cancelEditStage()
+  } catch {}
+}
+
+function startEditStage(stage) {
+  editingStage.value = stage
+  stageForm.value = {
+    title: stage.title,
+    description: stage.description || '',
+    order: stage.order,
+    start_date: stage.start_date || '',
+    end_date: stage.end_date || ''
+  }
+}
+
+function cancelEditStage() {
+  editingStage.value = null
+  stageForm.value = { title: '', description: '', order: stages.value.length + 1, start_date: '', end_date: '' }
+}
+
+async function deleteStage(stageId) {
+  if (!confirm('Удалить этап? Все задания этапа будут удалены.')) return
+  try {
+    await api.delete(`/api/events/stages/${stageId}/`)
+    stages.value = stages.value.filter(s => s.id !== stageId)
+  } catch {}
+}
+
+function onTaskFileChange(e) {
+  const file = e.target.files[0] || null
+  if (file && file.size > 10 * 1024 * 1024) {
+    taskError.value = 'Файл превышает 10 МБ. Выберите файл меньшего размера.'
+    e.target.value = ''
+    taskForm.value.file = null
+    return
+  }
+  taskError.value = ''
+  taskForm.value.file = file
+}
+
+function openAddTask(stage) {
+  taskStage.value = stage
+  editingTask.value = null
+  taskForm.value = { title: '', description: '', order: (stage.tasks?.length || 0) + 1, max_score: 100, file: null }
+  taskError.value = ''
+  showTaskModal.value = true
+}
+
+function startEditTask(task, stage) {
+  taskStage.value = stage
+  editingTask.value = task
+  taskForm.value = { title: task.title, description: task.description, order: task.order, max_score: task.max_score, file: null }
+  taskError.value = ''
+  showTaskModal.value = true
+}
+
+async function saveTask() {
+  taskError.value = ''
+  if (!taskForm.value.title.trim() || !taskForm.value.description.trim()) {
+    taskError.value = 'Заполните название и условие задания'
+    return
+  }
+  try {
+    const fd = new FormData()
+    fd.append('stage', taskStage.value.id)
+    fd.append('title', taskForm.value.title)
+    fd.append('description', taskForm.value.description)
+    fd.append('order', taskForm.value.order)
+    fd.append('max_score', taskForm.value.max_score)
+    if (taskForm.value.file) fd.append('file', taskForm.value.file)
+    const headers = { 'Content-Type': 'multipart/form-data' }
+    if (editingTask.value) {
+      const r = await api.patch(`/api/events/tasks/${editingTask.value.id}/`, fd, { headers })
+      const idx = taskStage.value.tasks.findIndex(t => t.id === editingTask.value.id)
+      if (idx !== -1) taskStage.value.tasks[idx] = r.data
+    } else {
+      const r = await api.post('/api/events/tasks/', fd, { headers })
+      if (!taskStage.value.tasks) taskStage.value.tasks = []
+      taskStage.value.tasks.push(r.data)
+    }
+    showTaskModal.value = false
+  } catch (e) {
+    taskError.value = e.response?.data?.detail || 'Ошибка при сохранении'
+  }
+}
+
+async function deleteTask(taskId, stage) {
+  if (!confirm('Удалить задание?')) return
+  try {
+    await api.delete(`/api/events/tasks/${taskId}/`)
+    stage.tasks = stage.tasks.filter(t => t.id !== taskId)
+  } catch {}
+}
 
 // ---- Modal shared ----
 const modalLoading = ref(false)
@@ -672,6 +950,8 @@ async function loadJury() {
   try {
     const res = await api.get('/api/auth/users/?role=jury')
     juryUsers.value = res.data.results || res.data
+    const tr = await api.get('/api/auth/users/?role=teacher')
+    teacherUsers.value = tr.data.results || tr.data
   } catch {}
 }
 
@@ -745,13 +1025,13 @@ async function saveEvent() {
 // ---- User modal ----
 function openCreateUser() {
   editingUser.value = null
-  userForm.value = { first_name: '', last_name: '', patronymic: '', email: '', phone: '', role: 'participant', status: 'active', institution: '', grade_or_position: '', password: '' }
+  userForm.value = { first_name: '', last_name: '', patronymic: '', email: '', phone: '', role: 'participant', status: 'active', institution: '', grade_or_position: '', teacher_id: null, password: '' }
   modalError.value = ''
   showUserModal.value = true
 }
 function openEditUser(u) {
   editingUser.value = u
-  userForm.value = { first_name: u.first_name || '', last_name: u.last_name || '', patronymic: u.patronymic || '', email: u.email, phone: u.phone || '', role: u.role, status: u.status || 'active', institution: u.institution || '', grade_or_position: u.grade_or_position || '' }
+  userForm.value = { first_name: u.first_name || '', last_name: u.last_name || '', patronymic: u.patronymic || '', email: u.email, phone: u.phone || '', role: u.role, status: u.status || 'active', institution: u.institution || '', grade_or_position: u.grade_or_position || '', teacher_id: u.teacher_id || null }
   modalError.value = ''
   showUserModal.value = true
 }
@@ -765,8 +1045,12 @@ async function saveUser() {
       const res = await api.patch(`/api/auth/users/${editingUser.value.id}/`, userForm.value)
       const idx = users.value.findIndex(u => u.id === editingUser.value.id)
       if (idx !== -1) users.value[idx] = { ...users.value[idx], ...res.data }
+      // Назначить педагога отдельным запросом если участник
+      if (userForm.value.role === 'participant') {
+        await api.post(`/api/auth/users/${editingUser.value.id}/assign_teacher/`, { teacher_id: userForm.value.teacher_id }).catch(() => {})
+      }
     } else {
-      const res = await api.post('/api/auth/register/', { ...userForm.value, re_password: userForm.value.password })
+      const res = await api.post('/api/auth/register/', { ...userForm.value, password_confirm: userForm.value.password })
       users.value.unshift(res.data)
     }
     closeUserModal()

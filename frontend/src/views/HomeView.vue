@@ -68,7 +68,10 @@
         <div v-else-if="events.length" class="events-grid">
           <div v-for="event in events" :key="event.id" class="event-card" @click="router.push('/events/' + event.id)" style="cursor:pointer">
             <div class="event-date">{{ formatDate(event.start_date) }}</div>
-            <div class="event-badge" :class="statusClass(event.status)" style="margin-bottom:10px">{{ statusLabel(event.status) }}</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+              <div class="event-badge" :class="statusClass(event.status)">{{ statusLabel(event.status) }}</div>
+              <div class="event-badge" style="background:#eff6ff;color:#1e40af;">{{ typeLabel(event.event_type) }}</div>
+            </div>
             <h3>{{ event.title }}</h3>
             <p>{{ event.short_description }}</p>
             <button class="btn btn-outline" @click.stop="router.push('/events/' + event.id)">Подробнее</button>
@@ -77,39 +80,6 @@
         <div v-else style="text-align:center; padding: 40px; color: var(--text-gray);">Нет активных мероприятий</div>
         <div style="text-align:center; margin-top: 40px;">
           <RouterLink to="/events" class="btn btn-outline">Все мероприятия</RouterLink>
-        </div>
-      </div>
-    </section>
-
-    <!-- Stats -->
-    <section class="section">
-      <div class="container">
-        <h2 class="section-title">Цифры платформы</h2>
-        <div class="stats-grid" style="max-width: 900px; margin: 0 auto;">
-          <div class="stat-card">
-            <div class="stat-icon" style="background:#dbeafe;color:#1e40af">
-              <svg class="icon" aria-hidden="true"><use href="#ic-users"/></svg>
-            </div>
-            <div class="stat-info"><h3>1 200+</h3><p>Участников</p></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon" style="background:#d1fae5;color:#065f46">
-              <svg class="icon" aria-hidden="true"><use href="#ic-calendar"/></svg>
-            </div>
-            <div class="stat-info"><h3>50+</h3><p>Мероприятий</p></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon" style="background:#fef3c7;color:#92400e">
-              <svg class="icon" aria-hidden="true"><use href="#ic-trophy"/></svg>
-            </div>
-            <div class="stat-info"><h3>800+</h3><p>Победителей</p></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon" style="background:#fce7f3;color:#9f1239">
-              <svg class="icon" aria-hidden="true"><use href="#ic-scale"/></svg>
-            </div>
-            <div class="stat-info"><h3>30+</h3><p>Экспертов</p></div>
-          </div>
         </div>
       </div>
     </section>
@@ -186,5 +156,9 @@ function statusClass(s) {
 
 function statusLabel(s) {
   return { active: 'Активно', upcoming: 'Скоро', completed: 'Завершено', draft: 'Черновик', cancelled: 'Отменено' }[s] || s
+}
+
+function typeLabel(t) {
+  return { olympiad: 'Олимпиада', competition: 'Конкурс' }[t] || t
 }
 </script>

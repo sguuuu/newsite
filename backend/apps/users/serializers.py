@@ -69,15 +69,25 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     full_name = serializers.ReadOnlyField()
     initials = serializers.ReadOnlyField()
+    teacher_name = serializers.SerializerMethodField()
+    teacher_id = serializers.PrimaryKeyRelatedField(
+        source='teacher',
+        queryset=User.objects.filter(role='teacher'),
+        allow_null=True, required=False, write_only=False,
+    )
 
     class Meta:
         model = User
         fields = [
             'id', 'email', 'first_name', 'last_name', 'patronymic', 'phone',
             'role', 'status', 'institution', 'grade_or_position',
+            'teacher_id', 'teacher_name',
             'full_name', 'initials', 'date_joined', 'last_activity',
         ]
         read_only_fields = ['id', 'role', 'status', 'date_joined', 'last_activity']
+
+    def get_teacher_name(self, obj):
+        return obj.teacher.full_name if obj.teacher else None
 
 
 class UserListSerializer(serializers.ModelSerializer):
