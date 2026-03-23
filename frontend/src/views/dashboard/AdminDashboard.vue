@@ -253,7 +253,7 @@
                   <label>Мероприятие</label>
                   <select v-model="juryForm.event" class="form-input">
                     <option value="">Выберите мероприятие...</option>
-                    <option v-for="ev in adminEvents" :key="ev.id" :value="ev.id">{{ ev.title }}</option>
+                    <option v-for="ev in activeAdminEvents" :key="ev.id" :value="ev.id">{{ ev.title }}</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -263,6 +263,7 @@
                     <option v-for="j in juryUsers" :key="j.id" :value="j.id">{{ j.full_name || j.email }}</option>
                   </select>
                 </div>
+                <div v-if="juryError" style="color:#991b1b;background:#fef2f2;padding:8px 12px;border-radius:8px;font-size:13px;margin-bottom:8px;">{{ juryError }}</div>
                 <button type="submit" class="btn btn-primary" style="background:var(--primary-blue);color:white;">Назначить</button>
               </form>
             </div>
@@ -270,7 +271,7 @@
               <h2>Текущие назначения</h2>
               <div class="assignments-list">
                 <div v-for="a in juryAssignments" :key="a.id" class="assignment-item">
-                  <div><h4>{{ a.jury_name }}</h4><p>{{ a.event_title }}</p></div>
+                  <div><h4>{{ a.jury?.full_name || a.jury?.email }}</h4><p>{{ a.event_title }}</p></div>
                   <button class="btn-icon btn-icon-danger" @click="removeAssignment(a.id)"><svg class="icon"><use href="#ic-close"/></svg></button>
                 </div>
                 <div v-if="!juryAssignments.length" style="color:var(--text-gray); text-align:center; padding:20px;">Нет назначений</div>
@@ -294,30 +295,117 @@
           </div>
         </div>
 
-        <!-- ====== СТАТИСТИКА ====== -->
-        <div v-show="activeTab === 'statistics'">
+        <!-- ====== ДОКУМЕНТЫ ====== -->
+        <div v-show="activeTab === 'documents'">
           <div class="dashboard-header">
-            <h1>Статистика платформы</h1>
-            <button class="btn btn-outline" style="display:inline-flex;align-items:center;gap:8px;" @click="exportReport">
-              <svg class="icon icon-sm"><use href="#ic-export"/></svg>
-              Экспорт отчёта
-            </button>
+            <h1>Официальные документы</h1>
           </div>
-          <div class="stats-overview">
-            <div class="section-card">
-              <h2>Регистрации по месяцам</h2>
-              <div class="chart-placeholder">
-                <svg class="icon icon-lg" style="color:#93c5fd"><use href="#ic-chart-line"/></svg>
-                <p>Динамика регистраций за последние 12 месяцев</p>
+
+          <!-- Форма загрузки -->
+          <div class="section-card" style="margin-bottom:28px;">
+            <h2 style="margin-bottom:16px;">Загрузить документ</h2>
+            <form @submit.prevent="uploadDocument" style="display:flex;flex-direction:column;gap:14px;">
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label>Название *</label>
+                  <input v-model="docForm.title" type="text" class="form-input" required placeholder="Название документа">
+                </div>
+                <div class="form-group">
+                  <label>Тип документа</label>
+                  <select v-model="docForm.doc_type" class="form-input">
+                    <option value="regulation">Положение</option>
+                    <option value="template">Шаблон работы</option>
+                    <option value="criteria">Критерии оценивания</option>
+                    <option value="methodology">Метод. материалы</option>
+                    <option value="privacy">Политика конф.</option>
+                    <option value="other">Прочее</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label>Мероприятие <span style="color:var(--text-gray);font-weight:400;">(необязательно)</span></label>
+                  <select v-model="docForm.event" class="form-input">
+                    <option :value="null">— Без мероприятия —</option>
+                    <option v-for="ev in adminEvents" :key="ev.id" :value="ev.id">{{ ev.title }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Описание</label>
+                  <input v-model="docForm.description" type="text" class="form-input" placeholder="Краткое описание (необязательно)">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Файл *</label>
+                <input type="file" class="form-input" @change="onDocFileChange" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar" required>
+                <p style="font-size:12px;color:var(--text-gray);margin-top:4px;">PDF, Word, Excel, архивы. Макс. 10 МБ.</p>
+              </div>
+              <div v-if="docError" style="color:#991b1b;background:#fef2f2;padding:10px;border-radius:8px;font-size:14px;">{{ docError }}</div>
+              <div v-if="docSuccess" style="color:#065f46;background:#d1fae5;padding:10px;border-radius:8px;font-size:14px;">{{ docSuccess }}</div>
+              <button type="submit" class="btn" style="background:var(--primary-blue);color:white;width:fit-content;" :disabled="docLoading">
+                {{ docLoading ? 'Загружаем...' : 'Загрузить документ' }}
+              </button>
+            </form>
+          </div>
+
+          <!-- Список документов -->
+          <div class="section-card">
+            <h2 style="margin-bottom:16px;">Загруженные документы ({{ documents.length }})</h2>
+            <div v-if="!documents.length" style="text-align:center;padding:40px;color:var(--text-gray);">Документов ещё нет</div>
+            <div v-for="doc in documents" :key="doc.id"
+              style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;margin-bottom:10px;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:14px;">{{ doc.title }}</div>
+                <div style="font-size:12px;color:var(--text-gray);margin-top:2px;">
+                  {{ docTypeLabel(doc.doc_type) }}
+                  <span v-if="doc.event_title"> · {{ doc.event_title }}</span>
+                  · {{ doc.file_size_display }}
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;margin-left:12px;flex-shrink:0;">
+                <a :href="'/api/documents/' + doc.id + '/download/'" style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;background:var(--primary-blue);color:white;border-radius:8px;font-size:13px;text-decoration:none;">Скачать</a>
+                <button class="btn-icon btn-icon-danger" @click="deleteDocument(doc.id)"><svg class="icon"><use href="#ic-trash"/></svg></button>
               </div>
             </div>
-            <div class="section-card">
-              <h2>Сводка по мероприятиям</h2>
-              <div class="chart-placeholder">
-                <svg class="icon icon-lg" style="color:#93c5fd"><use href="#ic-chart-bar"/></svg>
-                <p>Сравнение мероприятий по числу участников и работ</p>
+          </div>
+        </div>
+
+        <!-- ====== РАБОТЫ ====== -->
+        <div v-show="activeTab === 'submissions'">
+          <div class="dashboard-header">
+            <h1>Работы участников</h1>
+          </div>
+          <div class="filter-section">
+            <select v-model="submissionEventFilter" style="max-width:300px;">
+              <option value="">Все мероприятия</option>
+              <option v-for="ev in adminEvents" :key="ev.id" :value="ev.id">{{ ev.title }}</option>
+            </select>
+            <select v-model="submissionStatusFilter">
+              <option value="">Все статусы</option>
+              <option value="draft">Черновик</option>
+              <option value="submitted">Отправлено</option>
+              <option value="under_review">На проверке</option>
+              <option value="evaluated">Проверено</option>
+            </select>
+          </div>
+          <div class="users-table" style="margin-top:16px;">
+            <div class="table-header" style="grid-template-columns:2fr 2fr 1.5fr 1fr 1fr 1fr;">
+              <div>Участник</div><div>Мероприятие</div><div>Файл</div><div>Дата</div><div>Статус</div><div>Действия</div>
+            </div>
+            <div v-for="s in filteredSubmissions" :key="s.id" class="user-row" style="grid-template-columns:2fr 2fr 1.5fr 1fr 1fr 1fr;">
+              <div class="user-cell">
+                <div class="user-avatar small">{{ (s.participant?.full_name?.[0] || '?').toUpperCase() }}</div>
+                <span>{{ s.participant?.full_name || s.participant?.email || '—' }}</span>
+              </div>
+              <div style="font-size:14px;">{{ s.event_title || '—' }}</div>
+              <div style="font-size:13px;color:var(--text-gray);">{{ s.original_filename || '—' }}</div>
+              <div style="font-size:13px;">{{ s.submitted_at ? formatDate(s.submitted_at) : formatDate(s.created_at) }}</div>
+              <div><span class="event-badge" :class="subStatusClass(s.status)">{{ subStatusLabel(s.status) }}</span></div>
+              <div style="display:flex;gap:6px;">
+                <a v-if="s.file" :href="s.file" target="_blank" style="display:inline-flex;align-items:center;padding:4px 10px;background:var(--primary-blue);color:white;border-radius:6px;font-size:12px;text-decoration:none;">Скачать</a>
               </div>
             </div>
+            <div v-if="!filteredSubmissions.length" style="padding:30px;text-align:center;color:var(--text-gray);">Работ не найдено</div>
           </div>
         </div>
 
@@ -337,15 +425,6 @@
                     <span class="slider"></span>
                   </label>
                   <div class="setting-info"><h4>{{ s.title }}</h4><p>{{ s.desc }}</p></div>
-                </div>
-              </div>
-            </div>
-            <div class="section-card" style="margin-top:30px;">
-              <h2>Безопасность</h2>
-              <div class="settings-list">
-                <div class="setting-item">
-                  <label class="switch"><input type="checkbox" v-model="twoFactor"><span class="slider"></span></label>
-                  <div class="setting-info"><h4>Двухфакторная аутентификация</h4><p>Требовать 2FA для администраторов</p></div>
                 </div>
               </div>
             </div>
@@ -683,8 +762,8 @@ const tabs = [
   { id: 'users', label: 'Пользователи', icon: 'users' },
   { id: 'events', label: 'Мероприятия', icon: 'calendar' },
   { id: 'jury', label: 'Жюри', icon: 'scale' },
-  { id: 'content', label: 'Контент', icon: 'document' },
-  { id: 'statistics', label: 'Статистика', icon: 'chart-line' },
+  { id: 'documents', label: 'Документы', icon: 'file' },
+  { id: 'submissions', label: 'Работы', icon: 'upload' },
   { id: 'settings', label: 'Настройки', icon: 'settings' }
 ]
 
@@ -724,6 +803,7 @@ const eventForm = ref({})
 const filteredEvents = computed(() =>
   eventFilter.value ? adminEvents.value.filter(e => e.status === eventFilter.value) : adminEvents.value
 )
+const activeAdminEvents = computed(() => adminEvents.value.filter(e => e.status !== 'completed' && e.status !== 'cancelled'))
 
 // ---- Jury ----
 const juryUsers = ref([])
@@ -731,8 +811,24 @@ const teacherUsers = ref([])
 const juryAssignments = ref([])
 const juryForm = ref({ event: '', jury: '' })
 
+// ---- Documents ----
+const documents = ref([])
+const docForm = ref({ title: '', doc_type: 'regulation', event: null, description: '' })
+const docLoading = ref(false)
+const docError = ref('')
+const docSuccess = ref('')
+
+// ---- Submissions (admin view) ----
+const allSubmissions = ref([])
+const submissionEventFilter = ref('')
+const submissionStatusFilter = ref('')
+const filteredSubmissions = computed(() => allSubmissions.value.filter(s => {
+  if (submissionEventFilter.value && s.event !== submissionEventFilter.value && s.event?.id !== submissionEventFilter.value) return false
+  if (submissionStatusFilter.value && s.status !== submissionStatusFilter.value) return false
+  return true
+}))
+
 // ---- Settings ----
-const twoFactor = ref(true)
 const emailSettings = ref([
   { key: 'reg', title: 'Уведомления о регистрации', desc: 'Отправлять email при регистрации пользователей', value: true },
   { key: 'deadline', title: 'Напоминания о дедлайнах', desc: 'Автоматические напоминания участникам', value: true }
@@ -901,7 +997,9 @@ onMounted(async () => {
     loadStats(),
     loadUsers(),
     loadEvents(),
-    loadJury()
+    loadJury(),
+    loadDocuments(),
+    loadSubmissions()
   ])
 })
 
@@ -948,10 +1046,14 @@ async function loadEvents() {
 
 async function loadJury() {
   try {
-    const res = await api.get('/api/auth/users/?role=jury')
-    juryUsers.value = res.data.results || res.data
-    const tr = await api.get('/api/auth/users/?role=teacher')
-    teacherUsers.value = tr.data.results || tr.data
+    const [jRes, tRes, aRes] = await Promise.all([
+      api.get('/api/auth/users/?role=jury'),
+      api.get('/api/auth/users/?role=teacher'),
+      api.get('/api/events/jury-assignments/')
+    ])
+    juryUsers.value = jRes.data.results || jRes.data
+    teacherUsers.value = tRes.data.results || tRes.data
+    juryAssignments.value = aRes.data.results || aRes.data
   } catch {}
 }
 
@@ -971,19 +1073,28 @@ async function deleteEvent(id) {
   } catch {}
 }
 
+const juryError = ref('')
+
 async function assignJury() {
-  if (!juryForm.value.event || !juryForm.value.jury) return
+  juryError.value = ''
+  if (!juryForm.value.event || !juryForm.value.jury) {
+    juryError.value = 'Выберите мероприятие и эксперта'
+    return
+  }
   try {
-    await api.post(`/api/events/${juryForm.value.event}/assign_jury/`, { jury_id: juryForm.value.jury })
-    const ev = adminEvents.value.find(e => e.id === juryForm.value.event)
-    const j = juryUsers.value.find(u => u.id === juryForm.value.jury)
-    if (ev && j) juryAssignments.value.push({ id: Date.now(), event_title: ev.title, jury_name: j.full_name || j.email })
+    const res = await api.post(`/api/events/${juryForm.value.event}/assign_jury/`, { jury_id: juryForm.value.jury })
+    juryAssignments.value.push(res.data)
     juryForm.value = { event: '', jury: '' }
-  } catch {}
+  } catch (e) {
+    juryError.value = e.response?.data?.detail || e.response?.data?.non_field_errors?.[0] || 'Ошибка при назначении'
+  }
 }
 
-function removeAssignment(id) {
-  juryAssignments.value = juryAssignments.value.filter(a => a.id !== id)
+async function removeAssignment(id) {
+  try {
+    await api.delete(`/api/events/jury-assignments/${id}/`)
+    juryAssignments.value = juryAssignments.value.filter(a => a.id !== id)
+  } catch {}
 }
 
 // ---- Event modal ----
@@ -1062,7 +1173,66 @@ async function saveUser() {
   }
 }
 
-function exportReport() { alert('Экспорт отчёта (функционал в разработке)') }
+// ---- Documents functions ----
+async function loadDocuments() {
+  try {
+    const res = await api.get('/api/documents/')
+    documents.value = res.data.results || res.data
+  } catch {}
+}
+
+function onDocFileChange(e) {
+  docForm.value._file = e.target.files[0] || null
+}
+
+async function uploadDocument() {
+  docError.value = ''
+  docSuccess.value = ''
+  if (!docForm.value.title.trim() || !docForm.value._file) {
+    docError.value = 'Укажите название и выберите файл'
+    return
+  }
+  docLoading.value = true
+  try {
+    const fd = new FormData()
+    fd.append('title', docForm.value.title)
+    fd.append('doc_type', docForm.value.doc_type)
+    fd.append('description', docForm.value.description || '')
+    if (docForm.value.event) fd.append('event', docForm.value.event)
+    fd.append('file', docForm.value._file)
+    const res = await api.post('/api/documents/', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    documents.value.unshift(res.data)
+    docSuccess.value = 'Документ успешно загружен!'
+    docForm.value = { title: '', doc_type: 'regulation', event: null, description: '' }
+  } catch (e) {
+    docError.value = e.response?.data?.detail || Object.values(e.response?.data || {}).flat().join(' ') || 'Ошибка загрузки'
+  } finally {
+    docLoading.value = false
+  }
+}
+
+async function deleteDocument(id) {
+  if (!confirm('Удалить документ?')) return
+  try {
+    await api.delete(`/api/documents/${id}/`)
+    documents.value = documents.value.filter(d => d.id !== id)
+  } catch {}
+}
+
+function docTypeLabel(t) {
+  return { regulation: 'Положение', template: 'Шаблон работы', criteria: 'Критерии', methodology: 'Метод. материалы', privacy: 'Политика конф.', other: 'Прочее' }[t] || t
+}
+
+// ---- Submissions functions ----
+async function loadSubmissions() {
+  try {
+    const res = await api.get('/api/submissions/')
+    allSubmissions.value = res.data.results || res.data
+  } catch {}
+}
+
+function subStatusClass(s) { return { draft: 'status-pending', submitted: 'status-soon', under_review: 'status-soon', evaluated: 'status-active' }[s] || 'status-pending' }
+function subStatusLabel(s) { return { draft: 'Черновик', submitted: 'Отправлено', under_review: 'На проверке', evaluated: 'Проверено' }[s] || s }
 
 function userInitials(u) {
   return ((u.first_name?.[0] || '') + (u.last_name?.[0] || '')).toUpperCase() || u.email?.[0]?.toUpperCase() || 'У'

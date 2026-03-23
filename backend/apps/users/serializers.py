@@ -106,13 +106,18 @@ class UserAdminSerializer(serializers.ModelSerializer):
     """Сериализатор для администратора — полный доступ."""
     full_name = serializers.ReadOnlyField()
     initials = serializers.ReadOnlyField()
+    teacher_id = serializers.PrimaryKeyRelatedField(
+        source='teacher',
+        queryset=User.objects.filter(role='teacher'),
+        allow_null=True, required=False, write_only=False,
+    )
 
     class Meta:
         model = User
         fields = [
             'id', 'email', 'first_name', 'last_name', 'patronymic', 'phone',
             'role', 'status', 'institution', 'grade_or_position',
-            'full_name', 'initials', 'is_active', 'date_joined', 'last_activity',
+            'teacher_id', 'full_name', 'initials', 'is_active', 'date_joined', 'last_activity',
         ]
         read_only_fields = ['id', 'date_joined', 'last_activity']
 

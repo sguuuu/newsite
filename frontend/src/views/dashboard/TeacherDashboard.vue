@@ -35,10 +35,6 @@
               <div class="stat-icon" style="background:#fef3c7;color:#92400e"><svg class="icon"><use href="#ic-check-circle"/></svg></div>
               <div class="stat-info"><h3>{{ totalSubmissions }}</h3><p>Сданных работ</p></div>
             </div>
-            <div class="stat-card">
-              <div class="stat-icon" style="background:#fce7f3;color:#9f1239"><svg class="icon"><use href="#ic-trophy"/></svg></div>
-              <div class="stat-info"><h3>{{ totalPrizes }}</h3><p>Призёров</p></div>
-            </div>
           </div>
           <div class="section-grid">
             <div class="section-card">
@@ -112,10 +108,6 @@
                 <div style="text-align:center;">
                   <div style="font-weight:600;font-size:16px;color:#065f46;">{{ s.submissions?.length || 0 }}</div>
                   <div style="font-size:11px;color:var(--text-gray);">работ</div>
-                </div>
-                <div style="text-align:center;">
-                  <div style="font-weight:600;font-size:16px;color:#d97706;">{{ s.prizes || 0 }}</div>
-                  <div style="font-size:11px;color:var(--text-gray);">призов</div>
                 </div>
                 <button class="btn-icon btn-icon-danger" title="Отвязать" style="margin-left:8px;"
                   @click.stop="removeStudent(s.id)">
@@ -220,7 +212,6 @@ const profileForm = ref({
 
 const totalEvents = computed(() => students.value.reduce((sum, s) => sum + (s.events?.length || 0), 0))
 const totalSubmissions = computed(() => students.value.reduce((sum, s) => sum + (s.submissions?.length || 0), 0))
-const totalPrizes = computed(() => students.value.reduce((sum, s) => sum + (s.prizes || 0), 0))
 
 const recentActivity = computed(() => {
   const all = []

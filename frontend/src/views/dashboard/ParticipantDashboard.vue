@@ -142,9 +142,12 @@
                 Файл: {{ s.original_filename }} · {{ s.file_size_kb }} КБ · Загружено: {{ formatDate(s.created_at) }}
               </div>
               <!-- Кнопка «Подать официально» для черновиков -->
-              <div v-if="s.status === 'draft'" style="margin-top:12px;display:flex;gap:10px;align-items:center;">
+              <div v-if="s.status === 'draft'" style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
                 <button class="btn btn-outline" style="font-size:13px;padding:6px 16px;" @click="submitWork(s)" :disabled="s._submitting">
                   {{ s._submitting ? 'Отправляем...' : 'Подать официально' }}
+                </button>
+                <button class="btn btn-outline" style="font-size:13px;padding:6px 16px;border-color:#ef4444;color:#ef4444;" @click="deleteDraft(s)" :disabled="s._deleting">
+                  {{ s._deleting ? 'Удаляем...' : 'Удалить черновик' }}
                 </button>
                 <span style="font-size:12px;color:var(--text-gray);">Черновик — работа ещё не отправлена на проверку</span>
               </div>
@@ -338,6 +341,18 @@ async function submitWork(s) {
     alert(e.response?.data?.detail || 'Ошибка при отправке работы')
   } finally {
     s._submitting = false
+  }
+}
+
+async function deleteDraft(s) {
+  if (!confirm('Удалить черновик? Файл будет удалён безвозвратно.')) return
+  s._deleting = true
+  try {
+    await api.delete(`/api/submissions/${s.id}/`)
+    submissions.value = submissions.value.filter(x => x.id !== s.id)
+  } catch (e) {
+    alert(e.response?.data?.detail || 'Ошибка при удалении')
+    s._deleting = false
   }
 }
 
