@@ -13,5 +13,8 @@ router.register('', views.EventViewSet, basename='event')
 urlpatterns = [
     path('my-registrations/', views.MyRegistrationsView.as_view(), name='my-registrations'),
     path('dashboard-stats/', views.DashboardStatsView.as_view(), name='dashboard-stats'),
+    path('analytics/', views.GlobalAnalyticsView.as_view(), name='global-analytics'),
+    path('analytics/export/', views.AnalyticsExportView.as_view(), name='analytics-export'),
+    path('<int:pk>/analytics/', views.EventDetailAnalyticsView.as_view(), name='event-analytics'),
     path('', include(router.urls)),
 ]

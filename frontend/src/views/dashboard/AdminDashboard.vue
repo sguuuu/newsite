@@ -470,6 +470,14 @@
           </div>
         </div>
 
+        <!-- ====== АНАЛИТИКА ====== -->
+        <div v-show="activeTab === 'analytics'">
+          <div class="dashboard-header">
+            <div><h1>Аналитика</h1><p>Статистика по мероприятиям, участникам и работам</p></div>
+          </div>
+          <AnalyticsPanel v-if="activeTab === 'analytics'" />
+        </div>
+
         <!-- ====== НАСТРОЙКИ ====== -->
         <div v-show="activeTab === 'settings'">
           <div class="dashboard-header">
@@ -822,6 +830,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
+import AnalyticsPanel from '@/components/AnalyticsPanel.vue'
 import { useAuthStore } from '@/stores/auth.js'
 import api from '@/api/index.js'
 
@@ -837,6 +846,7 @@ const tabs = computed(() => [
   { id: 'jury', label: 'Жюри', icon: 'scale' },
   { id: 'documents', label: 'Документы', icon: 'file' },
   { id: 'submissions', label: 'Работы', icon: 'upload' },
+  { id: 'analytics', label: 'Аналитика', icon: 'chart-bar' },
   { id: 'settings', label: 'Настройки', icon: 'settings' }
 ])
 
@@ -1366,10 +1376,6 @@ async function deleteDocument(id) {
     await api.delete(`/api/documents/${id}/`)
     documents.value = documents.value.filter(d => d.id !== id)
   } catch {}
-}
-
-function docTypeLabel(t) {
-  return { regulation: 'Положение', template: 'Шаблон работы', criteria: 'Критерии', methodology: 'Метод. материалы', privacy: 'Политика конф.', other: 'Прочее' }[t] || t
 }
 
 // ---- Submissions functions ----

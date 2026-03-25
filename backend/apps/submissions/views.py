@@ -94,6 +94,35 @@ class SubmissionViewSet(ModelViewSet):
         )
         return Response(SubmissionSerializer(submission).data)
 
+    @action(detail=True, methods=['post'], permission_classes=[IsParticipant])
+    def resubmit(self, request, pk=None):
+        """POST /api/submissions/{id}/resubmit/ — заменить файл работы (participant)."""
+        submission = self.get_object()
+        if submission.participant != request.user:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        if submission.status == 'evaluated':
+            return Response(
+                {'detail': 'Проверенная работа не может быть заменена.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        new_file = request.FILES.get('file')
+        if not new_file:
+            return Response({'detail': 'Файл обязателен.'}, status=status.HTTP_400_BAD_REQUEST)
+        # Validate extension
+        ext = new_file.name.rsplit('.', 1)[-1].lower()
+        if ext not in ('pdf', 'doc', 'docx', 'xls', 'xlsx', 'zip', 'rar'):
+            return Response({'detail': 'Недопустимый формат файла.'}, status=status.HTTP_400_BAD_REQUEST)
+        if new_file.size > 10 * 1024 * 1024:
+            return Response({'detail': 'Файл превышает 10 МБ.'}, status=status.HTTP_400_BAD_REQUEST)
+        submission.file.delete(save=False)
+        submission.file = new_file
+        submission.original_filename = new_file.name
+        submission.file_size = new_file.size
+        submission.status = 'submitted'
+        submission.submitted_at = timezone.now()
+        submission.save(update_fields=['file', 'original_filename', 'file_size', 'status', 'submitted_at'])
+        return Response(SubmissionSerializer(submission).data)
+
     @action(detail=True, methods=['post'], permission_classes=[IsAdmin])
     def assign_jury(self, request, pk=None):
         submission = self.get_object()
@@ -147,11 +176,11 @@ class EvaluationViewSet(ModelViewSet):
         ).select_related('submission')
 
     def perform_update(self, serializer):
-        instance = self.get_object()
-        if not instance.is_draft:
-            from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied('Финальная оценка не может быть изменена.')
-        serializer.save()
+        evaluation = serializer.save()
+        # Если статус работы уже evaluated, оставляем как есть
+        # Если оценка финализирована при обновлении — синхронизируем
+        if not evaluation.is_draft:
+            self._finalize_evaluation(evaluation)
 
     def perform_create(self, serializer):
         evaluation = serializer.save()

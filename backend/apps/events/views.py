@@ -300,6 +300,314 @@ class DashboardStatsView(generics.RetrieveAPIView):
         return Response({})
 
 
+# ─── Analytics ────────────────────────────────────────────────────────────────
+
+class GlobalAnalyticsView(generics.GenericAPIView):
+    """GET /api/events/analytics/?year=2025&event_id=1 — сводная аналитика (admin/teacher)."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        if user.role not in ('admin', 'teacher'):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        year = request.query_params.get('year')
+        event_id = request.query_params.get('event_id')
+
+        from apps.submissions.models import Submission
+        from django.db.models.functions import TruncMonth
+        from django.db.models import Avg
+
+        if user.role == 'admin':
+            events_qs = Event.objects.all()
+            subs_qs = Submission.objects.all()
+            regs_qs = EventRegistration.objects.all()
+        else:  # teacher
+            student_ids = list(user.students.values_list('id', flat=True))
+            events_qs = Event.objects.filter(registrations__participant__in=student_ids).distinct()
+            subs_qs = Submission.objects.filter(participant__in=student_ids)
+            regs_qs = EventRegistration.objects.filter(participant__in=student_ids)
+
+        if year:
+            events_qs = events_qs.filter(start_date__year=year)
+            subs_qs = subs_qs.filter(created_at__year=year)
+            regs_qs = regs_qs.filter(registered_at__year=year)
+
+        if event_id:
+            subs_qs = subs_qs.filter(event_id=event_id)
+            regs_qs = regs_qs.filter(event_id=event_id)
+
+        monthly = list(
+            subs_qs.exclude(status='draft')
+            .filter(submitted_at__isnull=False)
+            .annotate(month=TruncMonth('submitted_at'))
+            .values('month')
+            .annotate(count=Count('id'))
+            .order_by('month')
+        )
+
+        per_event = []
+        for ev in events_qs.order_by('-start_date')[:30]:
+            ev_subs = subs_qs.filter(event=ev)
+            ev_regs = regs_qs.filter(event=ev)
+            per_event.append({
+                'id': ev.id,
+                'title': ev.title,
+                'status': ev.status,
+                'start_date': str(ev.start_date) if ev.start_date else None,
+                'registrations': ev_regs.count(),
+                'submissions': ev_subs.exclude(status='draft').count(),
+                'evaluated': ev_subs.filter(status='evaluated').count(),
+            })
+
+        return Response({
+            'summary': {
+                'events_total': events_qs.count(),
+                'registrations_total': regs_qs.count(),
+                'submissions_total': subs_qs.exclude(status='draft').count(),
+                'evaluated_total': subs_qs.filter(status='evaluated').count(),
+            },
+            'monthly_chart': [
+                {'month': m['month'].strftime('%Y-%m'), 'count': m['count']}
+                for m in monthly if m['month']
+            ],
+            'per_event': per_event,
+        })
+
+
+class EventDetailAnalyticsView(generics.GenericAPIView):
+    """GET /api/events/{id}/analytics/ — детальная аналитика по мероприятию."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk, *args, **kwargs):
+        from apps.submissions.models import Submission, Evaluation
+        from django.db.models.functions import TruncDate
+        from django.db.models import Avg
+
+        user = request.user
+        if user.role not in ('admin', 'teacher'):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            event = Event.objects.get(pk=pk)
+        except Event.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        subs_qs = Submission.objects.filter(event=event)
+        regs_qs = EventRegistration.objects.filter(event=event)
+        evals_qs = Evaluation.objects.filter(submission__event=event, is_draft=False)
+
+        if user.role == 'teacher':
+            student_ids = list(user.students.values_list('id', flat=True))
+            subs_qs = subs_qs.filter(participant__in=student_ids)
+            regs_qs = regs_qs.filter(participant__in=student_ids)
+            evals_qs = evals_qs.filter(submission__participant__in=student_ids)
+
+        avg_score = evals_qs.aggregate(avg=Avg('score'))['avg']
+
+        score_ranges = [
+            {'range': '0–20', 'count': evals_qs.filter(score__lte=20).count()},
+            {'range': '21–40', 'count': evals_qs.filter(score__gt=20, score__lte=40).count()},
+            {'range': '41–60', 'count': evals_qs.filter(score__gt=40, score__lte=60).count()},
+            {'range': '61–80', 'count': evals_qs.filter(score__gt=60, score__lte=80).count()},
+            {'range': '81–100', 'count': evals_qs.filter(score__gt=80).count()},
+        ]
+
+        daily = list(
+            subs_qs.exclude(status='draft')
+            .filter(submitted_at__isnull=False)
+            .annotate(day=TruncDate('submitted_at'))
+            .values('day')
+            .annotate(count=Count('id'))
+            .order_by('day')
+        )
+
+        stages = EventStage.objects.filter(event=event).prefetch_related('tasks').order_by('order')
+        stages_data = [
+            {'id': s.id, 'title': s.title, 'order': s.order, 'tasks_count': s.tasks.count()}
+            for s in stages
+        ]
+
+        return Response({
+            'event': {
+                'id': event.id, 'title': event.title, 'status': event.status,
+                'start_date': str(event.start_date) if event.start_date else None,
+                'end_date': str(event.end_date) if event.end_date else None,
+            },
+            'summary': {
+                'registrations': regs_qs.count(),
+                'submissions': subs_qs.exclude(status='draft').count(),
+                'evaluated': subs_qs.filter(status='evaluated').count(),
+                'avg_score': round(avg_score, 1) if avg_score else None,
+            },
+            'score_distribution': score_ranges,
+            'submissions_timeline': [
+                {'date': d['day'].strftime('%Y-%m-%d'), 'count': d['count']}
+                for d in daily if d['day']
+            ],
+            'stages': stages_data,
+        })
+
+
+class AnalyticsExportView(generics.GenericAPIView):
+    """GET /api/events/analytics/export/ — выгрузка отчёта в Excel."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment
+        from django.http import HttpResponse
+
+        user = request.user
+        if user.role not in ('admin', 'teacher'):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        year = request.query_params.get('year')
+        event_id = request.query_params.get('event_id')
+        report_type = request.query_params.get('type', 'submissions')
+
+        from apps.submissions.models import Submission, Evaluation
+        from django.db.models import Avg
+
+        wb = openpyxl.Workbook()
+        header_font = Font(bold=True, color='FFFFFF')
+        header_fill = PatternFill('solid', fgColor='1E3A5F')
+        center = Alignment(horizontal='center')
+
+        def style_headers(ws, headers):
+            for col, h in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col, value=h)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = center
+
+        def auto_width(ws):
+            for col in ws.columns:
+                width = max((len(str(c.value or '')) for c in col), default=8)
+                ws.column_dimensions[col[0].column_letter].width = min(width + 4, 50)
+
+        STATUS_LABELS = {
+            'draft': 'Черновик', 'submitted': 'Отправлено',
+            'under_review': 'На проверке', 'evaluated': 'Проверено',
+        }
+        EVENT_STATUS = {
+            'draft': 'Черновик', 'upcoming': 'Предстоящее',
+            'active': 'Активное', 'completed': 'Завершено', 'cancelled': 'Отменено',
+        }
+        EVENT_TYPE = {'olympiad': 'Олимпиада', 'competition': 'Конкурс'}
+
+        if report_type == 'submissions':
+            ws = wb.active
+            ws.title = 'Работы участников'
+            headers = ['ID', 'Участник', 'Email', 'Мероприятие', 'Статус', 'Дата подачи', 'Оценка', 'Комментарий жюри']
+            style_headers(ws, headers)
+
+            subs_qs = (Submission.objects
+                       .select_related('participant', 'event')
+                       .exclude(status='draft'))
+            if user.role == 'teacher':
+                subs_qs = subs_qs.filter(participant__in=user.students.all())
+            if year:
+                subs_qs = subs_qs.filter(submitted_at__year=year)
+            if event_id:
+                subs_qs = subs_qs.filter(event_id=event_id)
+
+            for sub in subs_qs:
+                try:
+                    ev_obj = sub.evaluation
+                    score = ev_obj.score if not ev_obj.is_draft else ''
+                    feedback = ev_obj.feedback if not ev_obj.is_draft else ''
+                except Exception:
+                    score, feedback = '', ''
+                ws.append([
+                    sub.id,
+                    sub.participant.full_name or f'{sub.participant.last_name} {sub.participant.first_name}'.strip(),
+                    sub.participant.email,
+                    sub.event.title,
+                    STATUS_LABELS.get(sub.status, sub.status),
+                    sub.submitted_at.strftime('%d.%m.%Y %H:%M') if sub.submitted_at else '',
+                    score,
+                    feedback,
+                ])
+            auto_width(ws)
+
+        elif report_type == 'events':
+            ws = wb.active
+            ws.title = 'Мероприятия'
+            headers = ['ID', 'Название', 'Тип', 'Статус', 'Начало', 'Конец', 'Регистраций', 'Работ подано', 'Проверено', 'Ср. балл']
+            style_headers(ws, headers)
+
+            events_qs = Event.objects.all()
+            if user.role == 'teacher':
+                student_ids = list(user.students.values_list('id', flat=True))
+                events_qs = Event.objects.filter(registrations__participant__in=student_ids).distinct()
+            if year:
+                events_qs = events_qs.filter(start_date__year=year)
+            if event_id:
+                events_qs = events_qs.filter(id=event_id)
+
+            for ev in events_qs.order_by('-start_date'):
+                subs = Submission.objects.filter(event=ev).exclude(status='draft')
+                regs = EventRegistration.objects.filter(event=ev)
+                if user.role == 'teacher':
+                    student_ids = list(user.students.values_list('id', flat=True))
+                    subs = subs.filter(participant__in=student_ids)
+                    regs = regs.filter(participant__in=student_ids)
+                avg = Evaluation.objects.filter(submission__event=ev, is_draft=False).aggregate(a=Avg('score'))['a']
+                ws.append([
+                    ev.id, ev.title,
+                    EVENT_TYPE.get(ev.event_type, ev.event_type),
+                    EVENT_STATUS.get(ev.status, ev.status),
+                    ev.start_date.strftime('%d.%m.%Y') if ev.start_date else '',
+                    ev.end_date.strftime('%d.%m.%Y') if ev.end_date else '',
+                    regs.count(), subs.count(),
+                    subs.filter(status='evaluated').count(),
+                    round(avg, 1) if avg else '',
+                ])
+            auto_width(ws)
+
+        elif report_type == 'participants':
+            ws = wb.active
+            ws.title = 'Участники'
+            headers = ['ID', 'ФИО', 'Email', 'Учреждение', 'Мероприятий', 'Работ подано', 'Оценок получено', 'Ср. балл']
+            style_headers(ws, headers)
+
+            from django.contrib.auth import get_user_model
+            User_model = get_user_model()
+            participants_qs = User_model.objects.filter(role='participant')
+            if user.role == 'teacher':
+                participants_qs = user.students.all()
+            if year:
+                participants_qs = participants_qs.filter(
+                    registrations__registered_at__year=year
+                ).distinct()
+
+            for p in participants_qs:
+                regs = EventRegistration.objects.filter(participant=p)
+                subs = Submission.objects.filter(participant=p).exclude(status='draft')
+                if year:
+                    subs = subs.filter(submitted_at__year=year)
+                evals = Evaluation.objects.filter(submission__participant=p, is_draft=False)
+                avg = evals.aggregate(a=Avg('score'))['a']
+                ws.append([
+                    p.id,
+                    p.full_name or f'{p.last_name} {p.first_name}'.strip(),
+                    p.email,
+                    p.institution or '',
+                    regs.count(), subs.count(), evals.count(),
+                    round(avg, 1) if avg else '',
+                ])
+            auto_width(ws)
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        filename = f'report_{report_type}{"_" + year if year else ""}.xlsx'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        wb.save(response)
+        return response
+
+
 # ─── Stages ───────────────────────────────────────────────────────────────────
 
 class EventStageViewSet(ModelViewSet):

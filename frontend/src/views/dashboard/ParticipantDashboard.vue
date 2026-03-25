@@ -59,6 +59,26 @@
               <div v-if="!notifications.length" style="color:var(--text-gray);font-size:14px;padding:20px 0;text-align:center;">Нет уведомлений</div>
             </div>
           </div>
+
+          <!-- История участий -->
+          <div v-if="completedMyEvents.length" class="section-card" style="margin-top:24px;">
+            <h2 style="margin-bottom:16px;">Мои конкурсы — история участий</h2>
+            <div v-for="ev in completedMyEvents" :key="ev.id"
+              style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f5f9;">
+              <div>
+                <div style="font-weight:600;font-size:14px;color:var(--primary-dark);">{{ ev.title }}</div>
+                <div style="font-size:12px;color:var(--text-gray);margin-top:2px;">{{ formatDate(ev.start_date) }} — {{ formatDate(ev.end_date) }}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span v-if="submissionForEvent(ev.id)" style="font-size:13px;font-weight:600;"
+                  :style="submissionForEvent(ev.id).score !== null ? 'color:var(--primary-blue)' : 'color:var(--text-gray)'">
+                  {{ submissionForEvent(ev.id).score !== null ? submissionForEvent(ev.id).score + '/100' : subStatusLabel(submissionForEvent(ev.id).status) }}
+                </span>
+                <span v-else style="font-size:12px;color:var(--text-gray);">Без работы</span>
+                <span class="event-badge" style="background:#fee2e2;color:#991b1b;">Завершено</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Мои мероприятия -->
@@ -151,6 +171,26 @@
                   {{ s._deleting ? 'Удаляем...' : 'Удалить черновик' }}
                 </button>
                 <span style="font-size:12px;color:var(--text-gray);">Черновик — работа ещё не отправлена на проверку</span>
+              </div>
+              <!-- Кнопка «Обновить работу» для отправленных (не проверенных) -->
+              <div v-if="['submitted','under_review'].includes(s.status)" style="margin-top:12px;">
+                <div v-if="resubmitId !== s.id">
+                  <button class="btn btn-outline" style="font-size:13px;padding:6px 16px;" @click="resubmitId = s.id">
+                    Обновить файл работы
+                  </button>
+                </div>
+                <div v-else style="display:flex;flex-direction:column;gap:10px;background:#f8fafc;padding:14px;border-radius:10px;">
+                  <p style="font-size:13px;color:var(--text-gray);margin:0;">Выберите новый файл. Текущий будет заменён, работа останется на проверке.</p>
+                  <input type="file" class="form-input" @change="onResubmitFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar" style="font-size:13px;" />
+                  <div v-if="resubmitError" style="color:#991b1b;font-size:13px;">{{ resubmitError }}</div>
+                  <div style="display:flex;gap:8px;">
+                    <button class="btn" style="background:var(--primary-blue);color:white;font-size:13px;padding:6px 18px;"
+                      @click="resubmitWork(s)" :disabled="!resubmitFile || s._resubmitting">
+                      {{ s._resubmitting ? 'Заменяем...' : 'Заменить файл' }}
+                    </button>
+                    <button class="btn btn-outline" style="font-size:13px;padding:6px 14px;" @click="resubmitId = null; resubmitFile = null; resubmitError = ''">Отмена</button>
+                  </div>
+                </div>
               </div>
               <div v-if="s.status === 'evaluated'" class="submission-result" style="margin-top:15px;">
                 <div class="score-display">
@@ -451,6 +491,44 @@ async function deleteDraft(s) {
     alert(e.response?.data?.detail || 'Ошибка при удалении')
     s._deleting = false
   }
+}
+
+const resubmitId = ref(null)
+const resubmitFile = ref(null)
+const resubmitError = ref('')
+
+function onResubmitFile(e) {
+  const file = e.target.files[0] || null
+  resubmitError.value = ''
+  if (file && file.size > 10 * 1024 * 1024) {
+    resubmitError.value = 'Файл превышает 10 МБ.'
+    e.target.value = ''
+    resubmitFile.value = null
+    return
+  }
+  resubmitFile.value = file
+}
+
+async function resubmitWork(s) {
+  if (!resubmitFile.value) return
+  s._resubmitting = true
+  resubmitError.value = ''
+  try {
+    const fd = new FormData()
+    fd.append('file', resubmitFile.value)
+    const r = await api.post(`/api/submissions/${s.id}/resubmit/`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    Object.assign(s, r.data)
+    resubmitId.value = null
+    resubmitFile.value = null
+  } catch (e) {
+    resubmitError.value = e.response?.data?.detail || 'Ошибка при замене файла'
+  } finally {
+    s._resubmitting = false
+  }
+}
+
+function submissionForEvent(eventId) {
+  return submissions.value.find(s => s.event === eventId || s.event_id === eventId) || null
 }
 
 const profileSaved = ref(false)

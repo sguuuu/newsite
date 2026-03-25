@@ -153,6 +153,14 @@
           </div>
         </div>
 
+        <!-- Аналитика -->
+        <div v-show="activeTab === 'analytics'">
+          <div class="dashboard-header">
+            <div><h1>Аналитика моих учеников</h1><p>Статистика по мероприятиям и работам ваших учеников</p></div>
+          </div>
+          <AnalyticsPanel v-if="activeTab === 'analytics'" />
+        </div>
+
         <!-- Профиль -->
         <div v-show="activeTab === 'profile'">
           <div class="dashboard-header"><h1>Мой профиль</h1></div>
@@ -179,6 +187,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
+import AnalyticsPanel from '@/components/AnalyticsPanel.vue'
 import { useAuthStore } from '@/stores/auth.js'
 import api from '@/api/index.js'
 
@@ -187,6 +196,7 @@ const activeTab = ref('overview')
 const tabs = [
   { id: 'overview', label: 'Обзор', icon: 'chart-bar' },
   { id: 'students', label: 'Мои ученики', icon: 'users' },
+  { id: 'analytics', label: 'Аналитика', icon: 'chart-bar' },
   { id: 'profile', label: 'Профиль', icon: 'user' }
 ]
 const initials = computed(() => {
@@ -226,7 +236,7 @@ const recentActivity = computed(() => {
 onMounted(async () => {
   await Promise.allSettled([
     api.get('/api/auth/my-students/').then(r => { students.value = r.data }).catch(() => {}),
-    api.get('/api/notifications/').then(r => { notifications.value = r.data.results || r.data }).catch(() => {})
+    api.get('/api/notifications/').then(r => { notifications.value = r.data.results || r.data }).catch(() => {}),
   ])
 })
 
