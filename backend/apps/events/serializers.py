@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from apps.users.serializers import UserListSerializer
-from .models import Event, EventRegistration, JuryAssignment, EventStage, EventTask
+from .models import Event, EventRegistration, JuryAssignment, EventStage, EventTask, RegistrationDocument
 
 User = get_user_model()
 
@@ -18,6 +18,7 @@ class EventListSerializer(serializers.ModelSerializer):
             'status', 'format',
             'start_date', 'end_date', 'registration_deadline',
             'participant_count', 'is_registration_open', 'max_participants',
+            'requires_parental_consent', 'requires_application',
         ]
 
 
@@ -39,6 +40,7 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             'event_type', 'movement_type', 'status', 'format',
             'start_date', 'end_date', 'registration_deadline',
             'max_participants', 'age_min', 'age_max',
+            'requires_parental_consent', 'requires_application',
         ]
 
     def validate(self, data):
@@ -60,16 +62,38 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class RegistrationDocumentSerializer(serializers.ModelSerializer):
+    reviewed_by_name = serializers.CharField(source='reviewed_by.full_name', read_only=True)
+
+    class Meta:
+        model = RegistrationDocument
+        fields = [
+            'id', 'registration', 'doc_type', 'file',
+            'parent_full_name', 'parent_phone', 'comment',
+            'status', 'admin_note', 'submitted_at', 'reviewed_at', 'reviewed_by_name',
+        ]
+        read_only_fields = ['id', 'status', 'admin_note', 'submitted_at', 'reviewed_at', 'reviewed_by_name']
+
+    def validate_file(self, value):
+        if value and value.size > 10 * 1024 * 1024:
+            raise serializers.ValidationError('Размер файла не должен превышать 10 МБ.')
+        return value
+
+
 class EventRegistrationSerializer(serializers.ModelSerializer):
     participant = UserListSerializer(read_only=True)
     event_title = serializers.CharField(source='event.title', read_only=True)
     event_type = serializers.CharField(source='event.event_type', read_only=True)
+    documents = RegistrationDocumentSerializer(many=True, read_only=True)
+    requires_parental_consent = serializers.BooleanField(source='event.requires_parental_consent', read_only=True)
+    requires_application = serializers.BooleanField(source='event.requires_application', read_only=True)
 
     class Meta:
         model = EventRegistration
         fields = [
             'id', 'event', 'event_title', 'event_type',
             'participant', 'status', 'registered_at', 'completion_percentage',
+            'documents', 'requires_parental_consent', 'requires_application',
         ]
         read_only_fields = ['id', 'registered_at']
 

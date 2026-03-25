@@ -16,6 +16,7 @@
             @click="activeTab = tab.id">
             <svg class="icon" aria-hidden="true"><use :href="'#ic-' + tab.icon"/></svg>
             {{ tab.label }}
+            <span v-if="tab.badge" style="margin-left:auto;background:#ef4444;color:white;font-size:11px;font-weight:700;padding:1px 6px;border-radius:10px;">{{ tab.badge }}</span>
           </button>
         </nav>
       </aside>
@@ -41,7 +42,6 @@
               <div class="stat-info">
                 <h3>{{ stats.total_users || '—' }}</h3>
                 <p>Всего пользователей</p>
-                <span style="color:#10b981;font-size:13px;">↑ +24 за неделю</span>
               </div>
             </div>
             <div class="stat-card">
@@ -51,7 +51,6 @@
               <div class="stat-info">
                 <h3>{{ stats.active_events || '—' }}</h3>
                 <p>Активных мероприятий</p>
-                <span style="color:#10b981;font-size:13px;">↑ +3 за месяц</span>
               </div>
             </div>
             <div class="stat-card">
@@ -61,7 +60,6 @@
               <div class="stat-info">
                 <h3>{{ stats.completed_submissions || '—' }}</h3>
                 <p>Завершённых работ</p>
-                <span style="color:#10b981;font-size:13px;">↑ +156 за месяц</span>
               </div>
             </div>
             <div class="stat-card">
@@ -71,7 +69,15 @@
               <div class="stat-info">
                 <h3>{{ stats.jury_count || '—' }}</h3>
                 <p>Экспертов жюри</p>
-                <span style="color:#10b981;font-size:13px;">↑ +5 за месяц</span>
+              </div>
+            </div>
+            <div class="stat-card" style="cursor:pointer;" @click="activeTab = 'users'; userStatusFilter = 'pending'">
+              <div class="stat-icon" style="background:#fef3c7;color:#b45309">
+                <svg class="icon" aria-hidden="true"><use href="#ic-clock"/></svg>
+              </div>
+              <div class="stat-info">
+                <h3 :style="stats.pending_users > 0 ? 'color:#b45309' : ''">{{ stats.pending_users ?? '—' }}</h3>
+                <p>Ожидают одобрения</p>
               </div>
             </div>
           </div>
@@ -177,6 +183,7 @@
             <select v-model="userStatusFilter">
               <option value="">Все статусы</option>
               <option value="active">Активные</option>
+              <option value="pending">Ожидают одобрения</option>
               <option value="blocked">Заблокированные</option>
             </select>
           </div>
@@ -194,7 +201,8 @@
               <div style="font-size:14px; color:var(--text-gray);">{{ u.email }}</div>
               <div style="font-size:14px;">{{ formatDate(u.date_joined) }}</div>
               <div><span class="status-badge" :class="u.status">{{ statusLabel(u.status) }}</span></div>
-              <div class="action-buttons" style="display:flex;gap:8px;">
+              <div class="action-buttons" style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button v-if="u.status === 'pending'" class="btn-small btn-primary" title="Одобрить заявку" @click="approveUser(u.id)" style="font-size:13px;padding:6px 12px;">✓ Одобрить</button>
                 <button class="btn-icon" title="Редактировать" @click="openEditUser(u)"><svg class="icon"><use href="#ic-edit"/></svg></button>
                 <button class="btn-icon btn-icon-danger" title="Удалить" @click="deleteUser(u.id)"><svg class="icon"><use href="#ic-trash"/></svg></button>
               </div>
@@ -236,6 +244,59 @@
               </div>
             </div>
             <div v-if="!filteredEvents.length" style="padding:30px; text-align:center; color:var(--text-gray); grid-column:1/-1;">Мероприятий не найдено</div>
+          </div>
+        </div>
+
+        <!-- ====== ЗАЯВКИ ====== -->
+        <div v-show="activeTab === 'applications'">
+          <div class="dashboard-header">
+            <h1>Заявки на участие</h1>
+            <p style="color:var(--text-gray);font-size:14px;">Регистрации, ожидающие проверки документов</p>
+          </div>
+
+          <div v-if="!pendingRegs.length" style="text-align:center;padding:60px;color:var(--text-gray);">
+            Нет заявок, ожидающих проверки
+          </div>
+
+          <div v-for="reg in pendingRegs" :key="reg.id" class="section-card" style="margin-bottom:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+              <div>
+                <h3 style="font-size:16px;color:var(--primary-dark);margin-bottom:4px;">{{ reg.participant?.full_name || reg.participant?.email }}</h3>
+                <p style="font-size:14px;color:var(--text-gray);">{{ reg.event_title }}</p>
+                <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+                  <span class="role-badge participant">{{ reg.event_type === 'olympiad' ? 'Олимпиада' : 'Конкурс' }}</span>
+                  <span v-if="reg.requires_parental_consent" style="background:#fef3c7;color:#92400e;font-size:12px;padding:3px 10px;border-radius:10px;font-weight:600;">Требуется согласие родителей</span>
+                  <span v-if="reg.requires_application" style="background:#ede9fe;color:#5b21b6;font-size:12px;padding:3px 10px;border-radius:10px;font-weight:600;">Требуется заявка</span>
+                </div>
+              </div>
+              <span class="event-badge status-soon">Ожидает документы</span>
+            </div>
+
+            <div v-if="!reg.documents?.length" style="padding:16px;background:#fef9c3;border-radius:8px;font-size:14px;color:#92400e;">
+              Участник ещё не загрузил документы
+            </div>
+
+            <div v-for="doc in reg.documents" :key="doc.id" style="padding:14px;background:#f8fafc;border-radius:10px;margin-bottom:10px;border:1px solid #e5e7eb;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+                <div>
+                  <div style="font-weight:600;font-size:14px;">{{ docTypeLabel(doc.doc_type) }}</div>
+                  <div v-if="doc.parent_full_name" style="font-size:13px;color:var(--text-gray);margin-top:2px;">Родитель: {{ doc.parent_full_name }} {{ doc.parent_phone ? '· ' + doc.parent_phone : '' }}</div>
+                  <div v-if="doc.comment" style="font-size:13px;color:var(--text-gray);margin-top:2px;">Примечание: {{ doc.comment }}</div>
+                  <div style="font-size:12px;color:var(--text-gray);margin-top:4px;">Загружено: {{ formatDate(doc.submitted_at) }}</div>
+                </div>
+                <span class="status-badge" :class="doc.status">{{ docStatusLabel(doc.status) }}</span>
+              </div>
+              <div v-if="doc.file" style="margin-bottom:10px;">
+                <a :href="doc.file" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--primary-blue);color:white;border-radius:8px;font-size:13px;text-decoration:none;">
+                  Скачать документ
+                </a>
+              </div>
+              <div v-if="doc.status === 'pending'" style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;">
+                <input v-model="adminNotes[doc.id]" type="text" class="form-input" placeholder="Комментарий (необязательно)" style="max-width:300px;flex:1;">
+                <button class="btn-small btn-primary" @click="approveDoc(doc, reg)" :disabled="docActionLoading[doc.id]">✓ Одобрить</button>
+                <button class="btn-small btn-danger" @click="rejectDoc(doc, reg)" :disabled="docActionLoading[doc.id]">✕ Отклонить</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -519,6 +580,16 @@
             <input v-model="eventForm.age_max" type="number" class="form-input" placeholder="—">
           </div>
         </div>
+        <div class="form-row" style="margin-top:8px;">
+          <div class="form-group" style="flex-direction:row;align-items:center;gap:12px;">
+            <label class="switch"><input type="checkbox" v-model="eventForm.requires_parental_consent"><span class="slider"></span></label>
+            <div><div style="font-weight:600;font-size:14px;">Требовать согласие родителей</div><div style="font-size:13px;color:var(--text-gray);">Для всех участников (несовершеннолетним — автоматически)</div></div>
+          </div>
+          <div class="form-group" style="flex-direction:row;align-items:center;gap:12px;">
+            <label class="switch"><input type="checkbox" v-model="eventForm.requires_application"><span class="slider"></span></label>
+            <div><div style="font-weight:600;font-size:14px;">Требовать заявку на участие</div><div style="font-size:13px;color:var(--text-gray);">Участник должен загрузить заявку/анкету</div></div>
+          </div>
+        </div>
         <p v-if="modalError" class="modal-error">{{ modalError }}</p>
         <div class="modal-actions">
           <button type="button" class="btn-modal-cancel" @click="closeEventModal">Отмена</button>
@@ -757,15 +828,17 @@ import api from '@/api/index.js'
 const auth = useAuthStore()
 const activeTab = ref('overview')
 
-const tabs = [
+const pendingRegsCount = ref(0)
+const tabs = computed(() => [
   { id: 'overview', label: 'Обзор', icon: 'chart-bar' },
   { id: 'users', label: 'Пользователи', icon: 'users' },
   { id: 'events', label: 'Мероприятия', icon: 'calendar' },
+  { id: 'applications', label: 'Заявки', icon: 'clipboard', badge: pendingRegsCount.value || null },
   { id: 'jury', label: 'Жюри', icon: 'scale' },
   { id: 'documents', label: 'Документы', icon: 'file' },
   { id: 'submissions', label: 'Работы', icon: 'upload' },
   { id: 'settings', label: 'Настройки', icon: 'settings' }
-]
+])
 
 const initials = computed(() => {
   const u = auth.user
@@ -773,7 +846,7 @@ const initials = computed(() => {
 })
 
 // ---- Overview data ----
-const stats = ref({ total_users: null, active_events: null, completed_submissions: null, jury_count: null })
+const stats = ref({ total_users: null, active_events: null, completed_submissions: null, jury_count: null, pending_users: null })
 const roleStats = ref({ participants: 935, participantsPct: 75, teachers: 250, teachersPct: 20, jury: 62, juryPct: 5 })
 const popularEvents = ref([])
 const recentUsers = ref([])
@@ -827,6 +900,54 @@ const filteredSubmissions = computed(() => allSubmissions.value.filter(s => {
   if (submissionStatusFilter.value && s.status !== submissionStatusFilter.value) return false
   return true
 }))
+
+// ---- Applications (pending registrations) ----
+const pendingRegs = ref([])
+const adminNotes = ref({})
+const docActionLoading = ref({})
+
+async function loadPendingRegs() {
+  try {
+    const r = await api.get('/api/events/reg-docs/pending_registrations/')
+    pendingRegs.value = r.data.results || r.data
+    pendingRegsCount.value = pendingRegs.value.length
+  } catch {}
+}
+
+async function approveDoc(doc, reg) {
+  docActionLoading.value[doc.id] = true
+  try {
+    await api.post(`/api/events/reg-docs/${doc.id}/approve/`, { admin_note: adminNotes.value[doc.id] || '' })
+    doc.status = 'approved'
+    // Проверяем, все ли документы одобрены
+    const allApproved = reg.documents.every(d => d.status === 'approved')
+    if (allApproved) {
+      reg.status = 'registered'
+      pendingRegs.value = pendingRegs.value.filter(r => r.id !== reg.id)
+      pendingRegsCount.value = pendingRegs.value.length
+    }
+  } catch (e) { alert(e.response?.data?.detail || 'Ошибка') } finally { docActionLoading.value[doc.id] = false }
+}
+
+async function rejectDoc(doc, reg) {
+  if (!adminNotes.value[doc.id]?.trim()) {
+    alert('Укажите причину отклонения в поле комментария')
+    return
+  }
+  docActionLoading.value[doc.id] = true
+  try {
+    await api.post(`/api/events/reg-docs/${doc.id}/reject/`, { admin_note: adminNotes.value[doc.id] })
+    doc.status = 'rejected'
+    doc.admin_note = adminNotes.value[doc.id]
+  } catch (e) { alert(e.response?.data?.detail || 'Ошибка') } finally { docActionLoading.value[doc.id] = false }
+}
+
+function docTypeLabel(t) {
+  return { parental_consent: 'Согласие родителей', application: 'Заявка на участие', other: 'Прочее' }[t] || t
+}
+function docStatusLabel(s) {
+  return { pending: 'На проверке', approved: 'Одобрено', rejected: 'Отклонено' }[s] || s
+}
 
 // ---- Settings ----
 const emailSettings = ref([
@@ -999,7 +1120,8 @@ onMounted(async () => {
     loadEvents(),
     loadJury(),
     loadDocuments(),
-    loadSubmissions()
+    loadSubmissions(),
+    loadPendingRegs(),
   ])
 })
 
@@ -1009,6 +1131,7 @@ async function loadStats() {
     const d = res.data
     stats.value.total_users = d.total || d.total_users
     stats.value.jury_count = d.jury
+    stats.value.pending_users = d.pending || 0
     const total = (d.participant || 0) + (d.teacher || 0) + (d.jury || 0)
     if (total) {
       roleStats.value = {
@@ -1026,6 +1149,11 @@ async function loadStats() {
     const list = res.data.results || res.data
     stats.value.active_events = Array.isArray(list) ? list.length : (res.data.count || 0)
     popularEvents.value = [...list].sort((a, b) => (b.participant_count || 0) - (a.participant_count || 0)).slice(0, 5)
+  } catch {}
+  try {
+    const res = await api.get('/api/submissions/?status=evaluated')
+    const list2 = res.data.results || res.data
+    stats.value.completed_submissions = res.data.count ?? (Array.isArray(list2) ? list2.length : 0)
   } catch {}
 }
 
@@ -1055,6 +1183,17 @@ async function loadJury() {
     teacherUsers.value = tRes.data.results || tRes.data
     juryAssignments.value = aRes.data.results || aRes.data
   } catch {}
+}
+
+async function approveUser(id) {
+  try {
+    await api.post(`/api/auth/users/${id}/approve/`)
+    const u = users.value.find(u => u.id === id)
+    if (u) { u.status = 'active' }
+    stats.value.pending_users = Math.max(0, (stats.value.pending_users || 1) - 1)
+  } catch (e) {
+    alert(e.response?.data?.detail || 'Ошибка при одобрении')
+  }
 }
 
 async function deleteUser(id) {
@@ -1100,13 +1239,13 @@ async function removeAssignment(id) {
 // ---- Event modal ----
 function openCreateEvent() {
   editingEvent.value = null
-  eventForm.value = { title: '', description: '', short_description: '', event_type: 'olympiad', format: 'online', status: 'draft', start_date: '', end_date: '', registration_deadline: '', max_participants: null, age_min: null, age_max: null }
+  eventForm.value = { title: '', description: '', short_description: '', event_type: 'olympiad', format: 'online', status: 'draft', start_date: '', end_date: '', registration_deadline: '', max_participants: null, age_min: null, age_max: null, requires_parental_consent: false, requires_application: false }
   modalError.value = ''
   showEventModal.value = true
 }
 function openEditEvent(ev) {
   editingEvent.value = ev
-  eventForm.value = { title: ev.title, description: ev.description || '', short_description: ev.short_description || '', event_type: ev.event_type, format: ev.format || 'online', status: ev.status, start_date: ev.start_date || '', end_date: ev.end_date || '', registration_deadline: ev.registration_deadline || '', max_participants: ev.max_participants || null, age_min: ev.age_min || null, age_max: ev.age_max || null }
+  eventForm.value = { title: ev.title, description: ev.description || '', short_description: ev.short_description || '', event_type: ev.event_type, format: ev.format || 'online', status: ev.status, start_date: ev.start_date || '', end_date: ev.end_date || '', registration_deadline: ev.registration_deadline || '', max_participants: ev.max_participants || null, age_min: ev.age_min || null, age_max: ev.age_max || null, requires_parental_consent: ev.requires_parental_consent || false, requires_application: ev.requires_application || false }
   modalError.value = ''
   showEventModal.value = true
 }
@@ -1140,11 +1279,16 @@ function openCreateUser() {
   modalError.value = ''
   showUserModal.value = true
 }
-function openEditUser(u) {
+async function openEditUser(u) {
   editingUser.value = u
-  userForm.value = { first_name: u.first_name || '', last_name: u.last_name || '', patronymic: u.patronymic || '', email: u.email, phone: u.phone || '', role: u.role, status: u.status || 'active', institution: u.institution || '', grade_or_position: u.grade_or_position || '', teacher_id: u.teacher_id || null }
   modalError.value = ''
   showUserModal.value = true
+  userForm.value = { first_name: '', last_name: '', patronymic: '', email: u.email, phone: '', role: u.role, status: u.status || 'active', institution: u.institution || '', grade_or_position: u.grade_or_position || '', teacher_id: null }
+  try {
+    const res = await api.get(`/api/auth/users/${u.id}/`)
+    const d = res.data
+    userForm.value = { first_name: d.first_name || '', last_name: d.last_name || '', patronymic: d.patronymic || '', email: d.email, phone: d.phone || '', role: d.role, status: d.status || 'active', institution: d.institution || '', grade_or_position: d.grade_or_position || '', teacher_id: d.teacher_id || null }
+  } catch {}
 }
 function closeUserModal() { showUserModal.value = false }
 
@@ -1161,7 +1305,12 @@ async function saveUser() {
         await api.post(`/api/auth/users/${editingUser.value.id}/assign_teacher/`, { teacher_id: userForm.value.teacher_id }).catch(() => {})
       }
     } else {
-      const res = await api.post('/api/auth/register/', { ...userForm.value, password_confirm: userForm.value.password })
+      // Админ создаёт пользователя напрямую — сразу активным, минуя очередь одобрения
+      const res = await api.post('/api/auth/users/', {
+        ...userForm.value,
+        is_active: true,
+        consent_given: true,
+      })
       users.value.unshift(res.data)
     }
     closeUserModal()
@@ -1239,7 +1388,7 @@ function userInitials(u) {
 }
 
 function roleLabel(r) { return { admin: 'Администратор', teacher: 'Педагог', participant: 'Участник', jury: 'Жюри' }[r] || r }
-function statusLabel(s) { return { active: 'Активен', blocked: 'Заблокирован', pending: 'Ожидание' }[s] || s }
+function statusLabel(s) { return { active: 'Активен', blocked: 'Заблокирован', pending: 'Ожидает одобрения' }[s] || s }
 function typeLabel(t) { return { olympiad: 'Олимпиада', competition: 'Конкурс' }[t] || t }
 function statusClass(s) { return { active: 'status-active', upcoming: 'status-soon', completed: 'status-completed', draft: 'status-pending' }[s] || 'status-pending' }
 function eventStatusLabel(s) { return { active: 'Активно', upcoming: 'Скоро', completed: 'Завершено', draft: 'Черновик' }[s] || s }

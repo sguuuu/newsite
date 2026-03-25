@@ -12,7 +12,9 @@
         </div>
         <nav class="sidebar-nav">
           <button v-for="tab in tabs" :key="tab.id" class="sidebar-link" :class="{ active: activeTab === tab.id }" @click="activeTab = tab.id">
-            <svg class="icon"><use :href="'#ic-' + tab.icon"/></svg>{{ tab.label }}
+            <svg class="icon"><use :href="'#ic-' + tab.icon"/></svg>
+            {{ tab.label }}
+            <span v-if="tab.badge" style="margin-left:auto;background:#ef4444;color:white;font-size:11px;font-weight:700;padding:1px 6px;border-radius:10px;">{{ tab.badge }}</span>
           </button>
         </nav>
       </aside>
@@ -62,7 +64,6 @@
         <!-- Мои мероприятия -->
         <div v-show="activeTab === 'events'">
           <div class="dashboard-header"><h1>Мои мероприятия</h1></div>
-<<<<<<< HEAD
 
           <!-- Активные и предстоящие -->
           <template v-if="activeMyEvents.length">
@@ -199,6 +200,7 @@
               </a>
             </div>
           </div>
+
         </div>
 
         <!-- Уведомления -->
@@ -211,6 +213,75 @@
             <div><h4>{{ n.title }}</h4><p>{{ n.message }}</p><span class="notif-time">{{ timeAgo(n.created_at) }}</span></div>
           </div>
           <div v-if="!notifications.length" style="text-align:center;padding:60px;color:var(--text-gray);">Нет уведомлений</div>
+        </div>
+
+        <!-- Документы для регистрации -->
+        <div v-show="activeTab === 'documents'">
+          <div class="dashboard-header">
+            <h1>Документы для регистрации</h1>
+            <p style="color:var(--text-gray);font-size:14px;">Загрузите необходимые документы для участия в мероприятиях</p>
+          </div>
+
+          <div v-if="pendingRegistrations.length === 0 && myDocs.length === 0" style="text-align:center;padding:60px;color:var(--text-gray);">
+            Нет регистраций, требующих документов
+          </div>
+
+          <!-- Регистрации ожидающие документов -->
+          <div v-for="reg in pendingRegistrations" :key="reg.id" class="section-card" style="margin-bottom:20px;border-left:4px solid #f59e0b;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+              <div>
+                <h3 style="font-size:17px;color:var(--primary-dark);">{{ reg.event_title }}</h3>
+                <span class="event-badge status-soon" style="margin-top:6px;display:inline-block;">Ожидает документы</span>
+              </div>
+            </div>
+
+            <!-- Уже загруженные документы -->
+            <div v-if="reg.documents?.length" style="margin-bottom:16px;">
+              <p style="font-size:14px;font-weight:600;margin-bottom:8px;">Загруженные документы:</p>
+              <div v-for="doc in reg.documents" :key="doc.id" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8fafc;border-radius:8px;margin-bottom:8px;">
+                <span style="flex:1;font-size:14px;">{{ docTypeLabel(doc.doc_type) }}</span>
+                <span class="status-badge" :class="doc.status">{{ docStatusLabel(doc.status) }}</span>
+                <span v-if="doc.admin_note" style="font-size:12px;color:#b45309;background:#fef3c7;padding:2px 8px;border-radius:6px;">{{ doc.admin_note }}</span>
+              </div>
+            </div>
+
+            <!-- Форма загрузки документа -->
+            <div style="background:#f8fafc;border-radius:10px;padding:16px;">
+              <p style="font-size:14px;font-weight:600;margin-bottom:12px;">Загрузить документ:</p>
+              <div class="form-group">
+                <label>Тип документа</label>
+                <select v-model="docUploadForm[reg.id].doc_type" class="form-input">
+                  <option v-if="reg.requires_parental_consent || isMinorParticipant" value="parental_consent">Согласие родителей/законного представителя</option>
+                  <option v-if="reg.requires_application" value="application">Заявка на участие</option>
+                  <option value="other">Прочее</option>
+                </select>
+              </div>
+              <div v-if="docUploadForm[reg.id].doc_type === 'parental_consent'" class="form-row">
+                <div class="form-group">
+                  <label>ФИО родителя/законного представителя *</label>
+                  <input v-model="docUploadForm[reg.id].parent_full_name" type="text" class="form-input" placeholder="Иванова Мария Петровна">
+                </div>
+                <div class="form-group">
+                  <label>Телефон родителя</label>
+                  <input v-model="docUploadForm[reg.id].parent_phone" type="tel" class="form-input" placeholder="+7 (999) 000-00-00">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Файл документа *</label>
+                <input type="file" class="form-input" @change="e => onDocFileChange(e, reg.id)" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                <p style="font-size:12px;color:var(--text-gray);margin-top:4px;">PDF, Word, изображения. Макс. 10 МБ.</p>
+              </div>
+              <div class="form-group">
+                <label>Примечание <span style="font-weight:400;color:var(--text-gray);">(необязательно)</span></label>
+                <input v-model="docUploadForm[reg.id].comment" type="text" class="form-input" placeholder="Дополнительная информация...">
+              </div>
+              <div v-if="docUploadErrors[reg.id]" style="color:#991b1b;background:#fef2f2;padding:10px;border-radius:8px;font-size:14px;margin-bottom:10px;">{{ docUploadErrors[reg.id] }}</div>
+              <div v-if="docUploadSuccess[reg.id]" style="color:#065f46;background:#d1fae5;padding:10px;border-radius:8px;font-size:14px;margin-bottom:10px;">{{ docUploadSuccess[reg.id] }}</div>
+              <button class="btn" style="background:var(--primary-blue);color:white;" @click="uploadDocument(reg.id)" :disabled="docUploading[reg.id]">
+                {{ docUploading[reg.id] ? 'Загружаем...' : 'Загрузить документ' }}
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Профиль -->
@@ -227,6 +298,23 @@
               <div class="form-row">
                 <div class="form-group"><label>Email</label><input v-model="profileForm.email" type="email" class="form-input" disabled style="background:#f9fafb;"></div>
                 <div class="form-group"><label>Телефон</label><input v-model="profileForm.phone" type="tel" class="form-input"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Дата рождения</label>
+                  <input v-model="profileForm.birth_date" type="date" class="form-input"
+                    :disabled="profileBirthDateLocked" :style="profileBirthDateLocked ? 'background:#f9fafb;' : ''">
+                  <p style="font-size:12px;color:var(--text-gray);margin-top:4px;">
+                    <span v-if="profileBirthDateLocked">Дата рождения установлена и не может быть изменена.</span>
+                    <span v-else>Укажите дату рождения. После сохранения изменить её будет невозможно.</span>
+                  </p>
+                </div>
+                <div v-if="profileAge !== null" class="form-group" style="display:flex;align-items:center;">
+                  <div style="padding:12px 20px;background:#eff6ff;border-radius:10px;text-align:center;">
+                    <div style="font-size:28px;font-weight:700;color:var(--primary-blue);">{{ profileAge }}</div>
+                    <div style="font-size:13px;color:var(--text-gray);">лет</div>
+                  </div>
+                </div>
               </div>
               <div class="form-group"><label>Учреждение</label><input v-model="profileForm.institution" type="text" class="form-input"></div>
               <div class="form-group">
@@ -257,13 +345,14 @@ import api from '@/api/index.js'
 const auth = useAuthStore()
 const activeTab = ref('overview')
 
-const tabs = [
+const tabs = computed(() => [
   { id: 'overview', label: 'Обзор', icon: 'chart-bar' },
   { id: 'events', label: 'Мои мероприятия', icon: 'calendar' },
   { id: 'tasks', label: 'Задания', icon: 'document' },
   { id: 'submissions', label: 'Мои работы', icon: 'upload' },
+  { id: 'documents', label: 'Документы', icon: 'file', badge: pendingDocsCount.value || null },
   { id: 'profile', label: 'Профиль', icon: 'user' }
-]
+])
 
 const initials = computed(() => {
   const u = auth.user
@@ -274,6 +363,14 @@ const myEvents = ref([])
 const submissions = ref([])
 const notifications = ref([])
 const results = ref([])
+const myDocs = ref([])
+const pendingRegistrations = ref([])
+
+// Форма загрузки документов (по reg.id)
+const docUploadForm = ref({})
+const docUploadErrors = ref({})
+const docUploadSuccess = ref({})
+const docUploading = ref({})
 
 // Upload form
 const uploadForm = ref({ event_id: '', file: null })
@@ -365,12 +462,34 @@ const profileForm = ref({
   email: auth.user?.email || '',
   phone: auth.user?.phone || '',
   institution: auth.user?.institution || '',
-  teacher_id: auth.user?.teacher_id ?? null
+  teacher_id: auth.user?.teacher_id ?? null,
+  birth_date: '',
 })
 
 const activeMyEvents = computed(() => myEvents.value.filter(ev => effectiveStatus(ev) !== 'completed' && effectiveStatus(ev) !== 'cancelled'))
 const completedMyEvents = computed(() => myEvents.value.filter(ev => effectiveStatus(ev) === 'completed' || effectiveStatus(ev) === 'cancelled'))
 const evaluatedCount = computed(() => submissions.value.filter(s => s.status === 'evaluated').length)
+const pendingDocsCount = computed(() => pendingRegistrations.value.length)
+const isMinorParticipant = computed(() => {
+  const bd = profileForm.value.birth_date
+  if (!bd) return false
+  const today = new Date()
+  const birth = new Date(bd)
+  const age = today.getFullYear() - birth.getFullYear() - (
+    (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) ? 1 : 0
+  )
+  return age < 18
+})
+const profileBirthDateLocked = ref(false)
+const profileAge = computed(() => {
+  const bd = profileForm.value.birth_date
+  if (!bd) return null
+  const today = new Date()
+  const birth = new Date(bd)
+  return today.getFullYear() - birth.getFullYear() - (
+    (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) ? 1 : 0
+  )
+})
 const prizes = computed(() => results.value.filter(r => r.place > 0 && r.place <= 3).length)
 const gold = computed(() => results.value.filter(r => r.place === 1).length)
 const silver = computed(() => results.value.filter(r => r.place === 2).length)
@@ -382,9 +501,75 @@ onMounted(async () => {
     api.get('/api/submissions/').then(r => { submissions.value = r.data.results || r.data }).catch(() => {}),
     api.get('/api/notifications/').then(r => { notifications.value = r.data.results || r.data }).catch(() => {}),
     api.get('/api/submissions/results/').then(r => { results.value = r.data.results || r.data }).catch(() => {}),
-    api.get('/api/auth/teachers/').then(r => { teachersList.value = r.data.results || r.data }).catch(() => {})
+    api.get('/api/auth/teachers/').then(r => { teachersList.value = r.data.results || r.data }).catch(() => {}),
+    loadMyDocs(),
   ])
+  // Подтягиваем birth_date из профиля
+  try {
+    const r = await api.get('/api/auth/profile/')
+    profileForm.value.birth_date = r.data.birth_date || ''
+    profileBirthDateLocked.value = r.data.birth_date_locked || false
+  } catch {}
 })
+
+async function loadMyDocs() {
+  try {
+    const r = await api.get('/api/events/my-registrations/')
+    const regs = r.data.results || r.data
+    pendingRegistrations.value = regs.filter(reg => reg.status === 'pending_docs')
+    // Инициализируем формы для каждой ожидающей регистрации
+    for (const reg of pendingRegistrations.value) {
+      if (!docUploadForm.value[reg.id]) {
+        const defaultType = reg.requires_parental_consent || isMinorParticipant.value
+          ? 'parental_consent'
+          : reg.requires_application ? 'application' : 'other'
+        docUploadForm.value[reg.id] = { doc_type: defaultType, parent_full_name: '', parent_phone: '', comment: '', file: null }
+      }
+    }
+  } catch {}
+}
+
+function onDocFileChange(e, regId) {
+  const file = e.target.files[0] || null
+  if (file && file.size > 10 * 1024 * 1024) {
+    docUploadErrors.value[regId] = 'Файл превышает 10 МБ.'
+    e.target.value = ''
+    return
+  }
+  docUploadErrors.value[regId] = ''
+  docUploadForm.value[regId].file = file
+}
+
+async function uploadDocument(regId) {
+  const form = docUploadForm.value[regId]
+  docUploadErrors.value[regId] = ''
+  docUploadSuccess.value[regId] = ''
+  if (!form.file) { docUploadErrors.value[regId] = 'Выберите файл'; return }
+  if (form.doc_type === 'parental_consent' && !form.parent_full_name.trim()) {
+    docUploadErrors.value[regId] = 'Укажите ФИО родителя/законного представителя'
+    return
+  }
+  docUploading.value[regId] = true
+  try {
+    const fd = new FormData()
+    fd.append('registration', regId)
+    fd.append('doc_type', form.doc_type)
+    fd.append('file', form.file)
+    if (form.parent_full_name) fd.append('parent_full_name', form.parent_full_name)
+    if (form.parent_phone) fd.append('parent_phone', form.parent_phone)
+    if (form.comment) fd.append('comment', form.comment)
+    const r = await api.post('/api/events/reg-docs/', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    docUploadSuccess.value[regId] = 'Документ загружен и отправлен на проверку администратору.'
+    // Добавляем документ в список регистрации
+    const reg = pendingRegistrations.value.find(x => x.id === regId)
+    if (reg) { if (!reg.documents) reg.documents = []; reg.documents.push(r.data) }
+    form.file = null; form.parent_full_name = ''; form.parent_phone = ''; form.comment = ''
+  } catch (e) {
+    docUploadErrors.value[regId] = e.response?.data?.detail || Object.values(e.response?.data || {}).flat().join(' ') || 'Ошибка загрузки'
+  } finally {
+    docUploading.value[regId] = false
+  }
+}
 
 async function markRead(n) {
   if (n.is_read) return
@@ -420,5 +605,11 @@ function timeAgo(d) {
   if (!d) return ''
   const h = Math.floor((Date.now() - new Date(d)) / 3600000)
   return h < 24 ? `${h} ч. назад` : `${Math.floor(h / 24)} дн. назад`
+}
+function docTypeLabel(t) {
+  return { parental_consent: 'Согласие родителей', application: 'Заявка на участие', other: 'Прочее' }[t] || t
+}
+function docStatusLabel(s) {
+  return { pending: 'На проверке', approved: 'Одобрено', rejected: 'Отклонено' }[s] || s
 }
 </script>

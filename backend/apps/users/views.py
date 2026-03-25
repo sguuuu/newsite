@@ -11,6 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .permissions import IsAdmin
+from .throttles import RegistrationThrottle, LoginThrottle, PasswordResetThrottle
 from .serializers import (
     CustomTokenObtainPairSerializer,
     UserRegistrationSerializer,
@@ -28,10 +29,10 @@ User = get_user_model()
 class LoginView(TokenObtainPairView):
     """POST /api/auth/login/ — вход, возвращает access + refresh токены."""
     serializer_class = CustomTokenObtainPairSerializer
+    throttle_classes = [LoginThrottle]
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
-        # Обновляем last_activity после входа
         if response.status_code == 200:
             email = request.data.get('email')
             User.objects.filter(email=email).update(last_activity=timezone.now())
@@ -39,22 +40,17 @@ class LoginView(TokenObtainPairView):
 
 
 class RegisterView(generics.CreateAPIView):
-    """POST /api/auth/register/ — регистрация нового пользователя."""
+    """POST /api/auth/register/ — регистрация нового пользователя (статус pending до одобрения админом)."""
     permission_classes = [AllowAny]
+    throttle_classes = [RegistrationThrottle]
     serializer_class = UserRegistrationSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        # Генерируем токены сразу после регистрации
-        refresh = RefreshToken.for_user(user)
+        serializer.save()
         return Response(
-            {
-                'user': UserProfileSerializer(user).data,
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
-            },
+            {'detail': 'Заявка принята. Ваш аккаунт будет активирован администратором в ближайшее время.'},
             status=status.HTTP_201_CREATED,
         )
 
@@ -149,6 +145,20 @@ class UserViewSet(ModelViewSet):
         user.save(update_fields=['status', 'is_active'])
         return Response({'detail': 'Пользователь активирован.'})
 
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        """POST /api/auth/users/{id}/approve/ — одобрить заявку на регистрацию."""
+        user = self.get_object()
+        if user.status != 'pending':
+            return Response(
+                {'detail': 'Пользователь не находится в статусе ожидания.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user.status = 'active'
+        user.is_active = True
+        user.save(update_fields=['status', 'is_active'])
+        return Response({'detail': f'Пользователь {user.full_name} одобрен.'})
+
     @action(detail=False, methods=['get'])
     def stats(self, request):
         """GET /api/auth/users/stats/ — статистика по ролям."""
@@ -156,6 +166,7 @@ class UserViewSet(ModelViewSet):
         stats = User.objects.values('role').annotate(count=Count('id'))
         result = {item['role']: item['count'] for item in stats}
         result['total'] = User.objects.count()
+        result['pending'] = User.objects.filter(status='pending').count()
         return Response(result)
 
     @action(detail=True, methods=['post'])
@@ -296,6 +307,7 @@ class PasswordResetRequestView(APIView):
     Всегда возвращает 200 (не раскрываем факт существования email).
     """
     permission_classes = [AllowAny]
+    throttle_classes = [PasswordResetThrottle]
 
     def post(self, request):
         email = request.data.get('email', '').strip().lower()

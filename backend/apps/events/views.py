@@ -8,7 +8,7 @@ from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.users.permissions import IsAdmin, IsAdminOrReadOnly
-from .models import Event, EventRegistration, JuryAssignment, EventStage, EventTask
+from .models import Event, EventRegistration, JuryAssignment, EventStage, EventTask, RegistrationDocument
 from .serializers import (
     EventListSerializer,
     EventDetailSerializer,
@@ -17,6 +17,7 @@ from .serializers import (
     JuryAssignmentSerializer,
     EventStageSerializer,
     EventTaskSerializer,
+    RegistrationDocumentSerializer,
 )
 
 
@@ -91,18 +92,40 @@ class EventViewSet(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        reg = EventRegistration.objects.create(event=event, participant=user)
+        # Определяем нужны ли документы
+        needs_parental = event.requires_parental_consent or user.is_minor
+        needs_application = event.requires_application
+        needs_docs = needs_parental or needs_application
 
-        # Уведомление в системе + email
+        reg_status = 'pending_docs' if needs_docs else 'registered'
+        reg = EventRegistration.objects.create(event=event, participant=user, status=reg_status)
+
         from apps.notifications.models import Notification
         from apps.notifications.email_service import send_registration_email
-        Notification.objects.create(
-            recipient=user,
-            title=f'Регистрация на "{event.title}"',
-            message=f'Вы успешно зарегистрировались на мероприятие "{event.title}".',
-            notif_type='registration',
-        )
-        send_registration_email(user, event)
+
+        if needs_docs:
+            required = []
+            if needs_parental:
+                required.append('согласие родителей/законного представителя')
+            if needs_application:
+                required.append('заявку на участие')
+            Notification.objects.create(
+                recipient=user,
+                title=f'Регистрация на "{event.title}" — требуются документы',
+                message=(
+                    f'Для завершения регистрации необходимо загрузить: '
+                    f'{", ".join(required)}. Перейдите в раздел «Документы» в своём кабинете.'
+                ),
+                notif_type='registration',
+            )
+        else:
+            Notification.objects.create(
+                recipient=user,
+                title=f'Регистрация на "{event.title}"',
+                message=f'Вы успешно зарегистрировались на мероприятие "{event.title}".',
+                notif_type='registration',
+            )
+            send_registration_email(user, event)
 
         return Response(
             EventRegistrationSerializer(reg).data,
@@ -155,6 +178,12 @@ class EventViewSet(ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[IsAdmin])
     def assign_jury(self, request, pk=None):
         event = self.get_object()
+        jury_id = request.data.get('jury_id')
+        if jury_id and JuryAssignment.objects.filter(event=event, jury_id=jury_id).exists():
+            return Response(
+                {'detail': 'Этот эксперт уже назначен на данное мероприятие.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         serializer = JuryAssignmentSerializer(
             data={'event': event.id, **request.data}
         )
@@ -320,3 +349,101 @@ class EventTaskViewSet(ModelViewSet):
         if instance.file:
             instance.file.delete(save=False)
         instance.delete()
+
+
+# ─── Registration Documents ────────────────────────────────────────────────────
+
+class RegistrationDocumentViewSet(ModelViewSet):
+    """
+    Документы для регистрации (согласия, заявки).
+
+    Участник:
+      POST /api/events/reg-docs/         — загрузить документ
+      GET  /api/events/reg-docs/         — мои документы
+      GET  /api/events/reg-docs/pending/ — регистрации, ожидающие документов (admin)
+
+    Администратор:
+      POST /api/events/reg-docs/{id}/approve/ — одобрить документ
+      POST /api/events/reg-docs/{id}/reject/  — отклонить документ
+    """
+    serializer_class = RegistrationDocumentSerializer
+
+    def get_permissions(self):
+        if self.action in ('approve', 'reject', 'pending_registrations'):
+            return [IsAdmin()]
+        return [IsAuthenticated()]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'admin':
+            return RegistrationDocument.objects.select_related(
+                'registration__participant', 'registration__event'
+            ).all()
+        return RegistrationDocument.objects.filter(
+            registration__participant=user
+        ).select_related('registration__event')
+
+    def perform_create(self, serializer):
+        # Проверяем, что регистрация принадлежит текущему пользователю
+        reg = serializer.validated_data['registration']
+        if reg.participant != self.request.user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('Эта регистрация вам не принадлежит.')
+        serializer.save()
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAdmin])
+    def approve(self, request, pk=None):
+        doc = self.get_object()
+        doc.status = 'approved'
+        doc.admin_note = request.data.get('admin_note', '')
+        doc.reviewed_by = request.user
+        doc.reviewed_at = timezone.now()
+        doc.save(update_fields=['status', 'admin_note', 'reviewed_by', 'reviewed_at'])
+
+        # Если все документы регистрации одобрены — активируем регистрацию
+        reg = doc.registration
+        all_docs = reg.documents.all()
+        if all_docs.exists() and not all_docs.filter(status__in=('pending', 'rejected')).exists():
+            reg.status = 'registered'
+            reg.save(update_fields=['status'])
+            from apps.notifications.models import Notification
+            from apps.notifications.email_service import send_registration_email
+            Notification.objects.create(
+                recipient=reg.participant,
+                title=f'Регистрация на "{reg.event.title}" подтверждена',
+                message='Все ваши документы проверены и одобрены. Регистрация завершена!',
+                notif_type='registration',
+            )
+            send_registration_email(reg.participant, reg.event)
+
+        return Response({'detail': 'Документ одобрен.'})
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAdmin])
+    def reject(self, request, pk=None):
+        doc = self.get_object()
+        doc.status = 'rejected'
+        doc.admin_note = request.data.get('admin_note', '')
+        doc.reviewed_by = request.user
+        doc.reviewed_at = timezone.now()
+        doc.save(update_fields=['status', 'admin_note', 'reviewed_by', 'reviewed_at'])
+
+        from apps.notifications.models import Notification
+        reg = doc.registration
+        Notification.objects.create(
+            recipient=reg.participant,
+            title=f'Документ для "{reg.event.title}" отклонён',
+            message=(
+                f'Ваш документ «{doc.get_doc_type_display()}» отклонён. '
+                f'{doc.admin_note or "Загрузите исправленный документ."}'
+            ),
+            notif_type='registration',
+        )
+        return Response({'detail': 'Документ отклонён.'})
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAdmin])
+    def pending_registrations(self, request):
+        """GET /api/events/reg-docs/pending_registrations/ — все регистрации ожидающие проверки."""
+        regs = EventRegistration.objects.filter(
+            status='pending_docs'
+        ).select_related('participant', 'event').prefetch_related('documents')
+        return Response(EventRegistrationSerializer(regs, many=True).data)

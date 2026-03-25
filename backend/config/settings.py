@@ -151,6 +151,17 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '300/hour',
+        'user': '3000/hour',
+        'registration': '5/hour',
+        'login': '10/hour',
+        'password_reset': '3/hour',
+    },
 }
 
 # ─── Simple JWT ───────────────────────────────────────────────────────────────

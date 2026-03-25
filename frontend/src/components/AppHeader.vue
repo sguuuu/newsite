@@ -4,7 +4,7 @@
       <div class="header-content">
         <RouterLink to="/" class="logo">
           <img :src="logoSrc" alt="СочиГУ" class="logo-icon" @error="handleLogoError" ref="logoImg">
-          <span class="logo-text">Школа финансовой культуры</span>
+          <span class="logo-text">Школа<br>финансовой культуры</span>
         </RouterLink>
 
         <nav class="nav">
@@ -48,9 +48,9 @@
                     <svg style="width:14px;height:14px"><use :href="notifIcon(n.notif_type)"/></svg>
                   </div>
                   <div style="flex:1; min-width:0;">
-                    <div style="font-weight:600; font-size:13px; color:var(--text-dark); margin-bottom:2px;">{{ n.title }}</div>
-                    <div style="font-size:12px; color:var(--text-gray); line-height:1.4; white-space:normal;">{{ n.message }}</div>
-                    <div style="font-size:11px; color:#94a3b8; margin-top:4px;">{{ formatTime(n.created_at) }}</div>
+                    <div style="font-weight:600; font-size:14px; color:var(--text-dark); margin-bottom:2px;">{{ n.title }}</div>
+                    <div style="font-size:13px; color:var(--text-gray); line-height:1.4; white-space:normal;">{{ n.message }}</div>
+                    <div style="font-size:12px; color:#94a3b8; margin-top:4px;">{{ formatTime(n.created_at) }}</div>
                   </div>
                   <div v-if="!n.is_read" style="width:8px;height:8px;border-radius:50%;background:var(--primary-blue);flex-shrink:0;margin-top:4px;"></div>
                 </div>
@@ -186,7 +186,7 @@ function formatTime(iso) {
   background: #ef4444;
   color: white;
   border-radius: 8px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   display: flex;
   align-items: center;

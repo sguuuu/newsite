@@ -18,6 +18,20 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
+        # Проверяем статус ДО попытки аутентификации, чтобы дать понятную ошибку
+        email = attrs.get(self.username_field, '').strip().lower()
+        try:
+            user = User.objects.get(email=email)
+            if user.status == 'pending':
+                raise serializers.ValidationError(
+                    'Ваш аккаунт ожидает одобрения администратора.'
+                )
+            if user.status == 'blocked':
+                raise serializers.ValidationError(
+                    'Ваш аккаунт заблокирован. Обратитесь к администратору.'
+                )
+        except User.DoesNotExist:
+            pass
         data = super().validate(attrs)
         data['role'] = self.user.role
         data['user_id'] = self.user.id
@@ -37,7 +51,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'email', 'password', 'password_confirm',
             'first_name', 'last_name', 'patronymic',
             'phone', 'role', 'institution', 'grade_or_position',
-            'consent_given',
+            'birth_date', 'consent_given',
         ]
         extra_kwargs = {
             'role': {'default': 'participant'},
@@ -60,6 +74,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         validated_data['consent_given_at'] = timezone.now()
+        validated_data['status'] = 'pending'
+        validated_data['is_active'] = False
         user = User(**validated_data)
         user.set_password(password)
         user.save()
@@ -69,18 +85,22 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     full_name = serializers.ReadOnlyField()
     initials = serializers.ReadOnlyField()
+    age = serializers.ReadOnlyField()
+    is_minor = serializers.ReadOnlyField()
     teacher_name = serializers.SerializerMethodField()
     teacher_id = serializers.PrimaryKeyRelatedField(
         source='teacher',
         queryset=User.objects.filter(role='teacher'),
         allow_null=True, required=False, write_only=False,
     )
+    birth_date_locked = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
             'id', 'email', 'first_name', 'last_name', 'patronymic', 'phone',
             'role', 'status', 'institution', 'grade_or_position',
+            'birth_date', 'birth_date_locked', 'age', 'is_minor',
             'teacher_id', 'teacher_name',
             'full_name', 'initials', 'date_joined', 'last_activity',
         ]
@@ -88,6 +108,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def get_teacher_name(self, obj):
         return obj.teacher.full_name if obj.teacher else None
+
+    def get_birth_date_locked(self, obj):
+        """Участник не может менять дату рождения после того как она установлена."""
+        return obj.birth_date is not None
+
+    def update(self, instance, validated_data):
+        # Запрещаем менять birth_date если уже установлена
+        if instance.birth_date and 'birth_date' in validated_data:
+            validated_data.pop('birth_date')
+        return super().update(instance, validated_data)
 
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -112,11 +142,15 @@ class UserAdminSerializer(serializers.ModelSerializer):
         allow_null=True, required=False, write_only=False,
     )
 
+    age = serializers.ReadOnlyField()
+    is_minor = serializers.ReadOnlyField()
+
     class Meta:
         model = User
         fields = [
             'id', 'email', 'first_name', 'last_name', 'patronymic', 'phone',
             'role', 'status', 'institution', 'grade_or_position',
+            'birth_date', 'age', 'is_minor',
             'teacher_id', 'full_name', 'initials', 'is_active', 'date_joined', 'last_activity',
         ]
         read_only_fields = ['id', 'date_joined', 'last_activity']

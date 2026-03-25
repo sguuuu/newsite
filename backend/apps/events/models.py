@@ -50,6 +50,18 @@ class Event(models.Model):
     age_min = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='Мин. возраст')
     age_max = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='Макс. возраст')
 
+    # Требования к документам при регистрации
+    requires_parental_consent = models.BooleanField(
+        default=False,
+        verbose_name='Требовать согласие родителей (для всех)',
+        help_text='Если включено — согласие родителей нужно всем, не только несовершеннолетним',
+    )
+    requires_application = models.BooleanField(
+        default=False,
+        verbose_name='Требовать заявку на участие',
+        help_text='Участник должен загрузить заявку/анкету для завершения регистрации',
+    )
+
     created_by = models.ForeignKey(
         'users.User',
         on_delete=models.CASCADE,
@@ -81,6 +93,7 @@ class Event(models.Model):
 
 class EventRegistration(models.Model):
     STATUS_CHOICES = [
+        ('pending_docs', 'Ожидает документы'),
         ('registered', 'Зарегистрирован'),
         ('active', 'Участвует'),
         ('completed', 'Завершил'),
@@ -174,3 +187,60 @@ class EventTask(models.Model):
 
     def __str__(self):
         return f'Задание {self.order}: {self.title}'
+
+
+class RegistrationDocument(models.Model):
+    """Документы, которые участник загружает для завершения регистрации на мероприятие."""
+
+    DOC_TYPE_CHOICES = [
+        ('parental_consent', 'Согласие родителей'),
+        ('application', 'Заявка на участие'),
+        ('other', 'Прочее'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'На проверке'),
+        ('approved', 'Одобрено'),
+        ('rejected', 'Отклонено'),
+    ]
+
+    registration = models.ForeignKey(
+        EventRegistration, on_delete=models.CASCADE,
+        related_name='documents', verbose_name='Регистрация'
+    )
+    doc_type = models.CharField(
+        max_length=30, choices=DOC_TYPE_CHOICES,
+        default='parental_consent', verbose_name='Тип документа'
+    )
+    file = models.FileField(
+        upload_to='registration_docs/', null=True, blank=True,
+        verbose_name='Файл документа'
+    )
+    # Поля для согласия родителей
+    parent_full_name = models.CharField(
+        max_length=255, blank=True, verbose_name='ФИО родителя/законного представителя'
+    )
+    parent_phone = models.CharField(
+        max_length=20, blank=True, verbose_name='Телефон родителя'
+    )
+    comment = models.TextField(blank=True, verbose_name='Примечание участника')
+
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES,
+        default='pending', verbose_name='Статус проверки'
+    )
+    admin_note = models.TextField(blank=True, verbose_name='Комментарий администратора')
+    submitted_at = models.DateTimeField(auto_now_add=True, verbose_name='Загружено')
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name='Проверено')
+    reviewed_by = models.ForeignKey(
+        'users.User', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='reviewed_documents',
+        verbose_name='Проверил'
+    )
+
+    class Meta:
+        verbose_name = 'Документ регистрации'
+        verbose_name_plural = 'Документы регистрации'
+        ordering = ['-submitted_at']
+
+    def __str__(self):
+        return f'{self.get_doc_type_display()} — {self.registration}'

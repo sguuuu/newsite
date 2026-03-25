@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 
@@ -45,6 +47,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         limit_choices_to={'role': 'teacher'},
     )
 
+    birth_date = models.DateField(
+        null=True, blank=True, verbose_name='Дата рождения'
+    )
+
     consent_given = models.BooleanField(
         default=False, verbose_name='Согласие на обработку персональных данных'
     )
@@ -69,6 +75,22 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f'{self.last_name} {self.first_name} ({self.get_role_display()})'
+
+    @property
+    def age(self):
+        """Возраст в полных годах, всегда актуален — считается от birth_date."""
+        if not self.birth_date:
+            return None
+        today = date.today()
+        return today.year - self.birth_date.year - (
+            (today.month, today.day) < (self.birth_date.month, self.birth_date.day)
+        )
+
+    @property
+    def is_minor(self):
+        """True если участнику нет 18 лет."""
+        a = self.age
+        return a is not None and a < 18
 
     @property
     def full_name(self):
