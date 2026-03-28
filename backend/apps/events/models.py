@@ -50,6 +50,12 @@ class Event(models.Model):
     age_min = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='Мин. возраст')
     age_max = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='Макс. возраст')
 
+    sequential_stages = models.BooleanField(
+        default=False,
+        verbose_name='Последовательный доступ к этапам',
+        help_text='Участник видит следующий этап только после сдачи работы на предыдущем и в рамках дат этапа',
+    )
+
     # Требования к документам при регистрации
     requires_parental_consent = models.BooleanField(
         default=False,

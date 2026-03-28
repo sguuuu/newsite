@@ -69,13 +69,25 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'password_confirm': 'Пароли не совпадают.'}
             )
+        role = data.get('role', 'participant')
+        if role in ('participant', 'teacher') and not data.get('birth_date'):
+            raise serializers.ValidationError(
+                {'birth_date': 'Дата рождения обязательна для участников и педагогов.'}
+            )
         return data
 
     def create(self, validated_data):
         password = validated_data.pop('password')
         validated_data['consent_given_at'] = timezone.now()
-        validated_data['status'] = 'pending'
-        validated_data['is_active'] = False
+        role = validated_data.get('role', 'participant')
+        if role in ('teacher', 'jury'):
+            # Педагоги и жюри требуют подтверждения администратора
+            validated_data['status'] = 'pending'
+            validated_data['is_active'] = False
+        else:
+            # Участники активируются автоматически
+            validated_data['status'] = 'active'
+            validated_data['is_active'] = True
         user = User(**validated_data)
         user.set_password(password)
         user.save()

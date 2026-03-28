@@ -8,6 +8,7 @@ from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.users.permissions import IsAdmin, IsAdminOrReadOnly
+from apps.submissions.models import Submission
 from .models import Event, EventRegistration, JuryAssignment, EventStage, EventTask, RegistrationDocument
 from .serializers import (
     EventListSerializer,
@@ -45,9 +46,13 @@ class EventViewSet(ModelViewSet):
 
     def get_queryset(self):
         qs = Event.objects.all()
+        user = self.request.user
+        # Черновики видит только администратор
+        if not (user.is_authenticated and user.role == 'admin'):
+            qs = qs.exclude(status='draft')
         if (self.request.query_params.get('my') == 'true'
-                and self.request.user.is_authenticated):
-            qs = qs.filter(registrations__participant=self.request.user)
+                and user.is_authenticated):
+            qs = qs.filter(registrations__participant=user)
         return qs
 
     def get_permissions(self):
@@ -93,7 +98,8 @@ class EventViewSet(ModelViewSet):
             )
 
         # Определяем нужны ли документы
-        needs_parental = event.requires_parental_consent or user.is_minor
+        # Согласие родителей — только если участник несовершеннолетний (< 18 лет)
+        needs_parental = user.is_minor
         needs_application = event.requires_application
         needs_docs = needs_parental or needs_application
 
@@ -629,6 +635,53 @@ class EventStageViewSet(ModelViewSet):
 
     def get_queryset(self):
         return EventStage.objects.prefetch_related('tasks').all()
+
+    def list(self, request, *args, **kwargs):
+        """Возвращает этапы с флагом is_accessible для участников."""
+        qs = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(qs, many=True)
+        data = serializer.data
+
+        user = request.user
+        event_id = request.query_params.get('event')
+        if (user.is_authenticated and user.role == 'participant' and event_id):
+            try:
+                event = Event.objects.get(pk=event_id)
+            except Event.DoesNotExist:
+                return Response(data)
+
+            if event.sequential_stages:
+                today = timezone.now().date()
+                stages_qs = list(qs.filter(event=event_id).order_by('order'))
+                accessible_ids = set()
+                for i, stage in enumerate(stages_qs):
+                    if i == 0:
+                        if not stage.start_date or stage.start_date <= today:
+                            accessible_ids.add(stage.id)
+                    else:
+                        prev = stages_qs[i - 1]
+                        prev_submitted = Submission.objects.filter(
+                            event=event,
+                            stage=prev,
+                            participant=user,
+                            status__in=('submitted', 'under_review', 'evaluated'),
+                        ).exists()
+                        date_ok = not stage.start_date or stage.start_date <= today
+                        if prev_submitted and date_ok:
+                            accessible_ids.add(stage.id)
+
+                for item in data:
+                    item['is_accessible'] = item['id'] in accessible_ids
+                    if not item['is_accessible']:
+                        item['tasks'] = []  # Скрываем задания недоступных этапов
+            else:
+                for item in data:
+                    item['is_accessible'] = True
+        else:
+            for item in data:
+                item['is_accessible'] = True
+
+        return Response(data)
 
 
 # ─── Tasks ────────────────────────────────────────────────────────────────────

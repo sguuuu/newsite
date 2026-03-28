@@ -288,13 +288,18 @@
             <!-- Форма загрузки документа -->
             <div style="background:#f8fafc;border-radius:10px;padding:16px;">
               <p style="font-size:14px;font-weight:600;margin-bottom:12px;">Загрузить документ:</p>
-              <div class="form-group">
+              <div v-if="isMinorParticipant && reg.requires_application" class="form-group">
                 <label>Тип документа</label>
                 <select v-model="docUploadForm[reg.id].doc_type" class="form-input">
-                  <option v-if="reg.requires_parental_consent || isMinorParticipant" value="parental_consent">Согласие родителей/законного представителя</option>
-                  <option v-if="reg.requires_application" value="application">Заявка на участие</option>
-                  <option value="other">Прочее</option>
+                  <option value="parental_consent">Согласие родителей/законного представителя</option>
+                  <option value="application">Заявка на участие</option>
                 </select>
+              </div>
+              <div v-else class="form-group">
+                <label>Тип документа</label>
+                <div style="padding:10px 14px;background:#eff6ff;border-radius:8px;font-size:14px;color:var(--primary-blue);font-weight:500;">
+                  {{ isMinorParticipant ? 'Согласие родителей/законного представителя' : 'Заявка на участие' }}
+                </div>
               </div>
               <div v-if="docUploadForm[reg.id].doc_type === 'parental_consent'" class="form-row">
                 <div class="form-group">
@@ -357,13 +362,43 @@
                 </div>
               </div>
               <div class="form-group"><label>Учреждение</label><input v-model="profileForm.institution" type="text" class="form-input"></div>
+              <!-- Педагог — система заявок -->
               <div class="form-group">
                 <label>Мой педагог (куратор)</label>
-                <select v-model="profileForm.teacher_id" class="form-input">
-                  <option :value="null">— Не указан —</option>
-                  <option v-for="t in teachersList" :key="t.id" :value="t.id">{{ t.full_name }} {{ t.institution ? '(' + t.institution + ')' : '' }}</option>
-                </select>
-                <p style="font-size:12px;color:var(--text-gray);margin-top:4px;">Педагог сможет отслеживать ваш прогресс в мероприятиях</p>
+
+                <!-- Уже прикреплён -->
+                <div v-if="profileForm.teacher_id" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#eff6ff;border-radius:10px;border:1px solid #bfdbfe;">
+                  <div>
+                    <div style="font-weight:600;color:var(--primary-dark);">{{ profileForm.teacher_name || 'Педагог' }}</div>
+                    <div style="font-size:12px;color:var(--text-gray);">Педагог видит ваш прогресс в мероприятиях</div>
+                  </div>
+                  <button type="button" @click="detachTeacher" style="padding:6px 14px;background:none;border:1px solid #ef4444;color:#ef4444;border-radius:8px;cursor:pointer;font-size:13px;">Отвязаться</button>
+                </div>
+
+                <!-- Есть ожидающая заявка -->
+                <div v-else-if="pendingTeacherRequest" style="padding:12px 16px;background:#fffbeb;border-radius:10px;border:1px solid #fcd34d;">
+                  <div style="font-weight:600;color:#92400e;margin-bottom:4px;">Заявка отправлена — ожидает подтверждения</div>
+                  <div style="font-size:13px;color:#78350f;">{{ pendingTeacherRequest.teacher_name }} · {{ pendingTeacherRequest.teacher_institution }}</div>
+                  <button type="button" @click="cancelTeacherRequest(pendingTeacherRequest.id)" style="margin-top:10px;padding:5px 12px;background:none;border:1px solid #d97706;color:#d97706;border-radius:6px;cursor:pointer;font-size:13px;">Отозвать заявку</button>
+                </div>
+
+                <!-- Нет педагога — выбор из списка -->
+                <div v-else>
+                  <select v-model="selectedTeacherId" class="form-input" style="margin-bottom:8px;">
+                    <option :value="null">— Выберите педагога —</option>
+                    <option v-for="t in teachersList" :key="t.id" :value="t.id">{{ t.full_name }}{{ t.institution ? ' · ' + t.institution : '' }}</option>
+                  </select>
+                  <div style="display:flex;gap:8px;align-items:flex-start;">
+                    <input v-model="teacherRequestMessage" type="text" class="form-input" placeholder="Сообщение педагогу (необязательно)" style="flex:1;">
+                    <button type="button" @click="sendTeacherRequest" :disabled="!selectedTeacherId || sendingTeacherReq"
+                      style="padding:10px 18px;background:var(--primary-blue);color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;white-space:nowrap;">
+                      {{ sendingTeacherReq ? '...' : 'Подать заявку' }}
+                    </button>
+                  </div>
+                  <p style="font-size:12px;color:var(--text-gray);margin-top:6px;">Педагог получит заявку и подтвердит прикрепление. Ваш email педагогу не передаётся.</p>
+                  <div v-if="teacherReqError" style="color:#991b1b;font-size:13px;margin-top:6px;">{{ teacherReqError }}</div>
+                  <div v-if="teacherReqSuccess" style="color:#065f46;font-size:13px;margin-top:6px;">{{ teacherReqSuccess }}</div>
+                </div>
               </div>
               <div v-if="profileSaved" style="color:#065f46;padding:10px;background:#d1fae5;border-radius:8px;margin-bottom:15px;">Профиль сохранён!</div>
               <button type="submit" class="btn" style="background:var(--primary-blue);color:white;">Сохранить</button>
@@ -533,6 +568,12 @@ function submissionForEvent(eventId) {
 
 const profileSaved = ref(false)
 const teachersList = ref([])
+const pendingTeacherRequest = ref(null)
+const selectedTeacherId = ref(null)
+const teacherRequestMessage = ref('')
+const sendingTeacherReq = ref(false)
+const teacherReqError = ref('')
+const teacherReqSuccess = ref('')
 const profileForm = ref({
   first_name: auth.user?.first_name || '',
   last_name: auth.user?.last_name || '',
@@ -580,6 +621,10 @@ onMounted(async () => {
     api.get('/api/notifications/').then(r => { notifications.value = r.data.results || r.data }).catch(() => {}),
     api.get('/api/submissions/results/').then(r => { results.value = r.data.results || r.data }).catch(() => {}),
     api.get('/api/auth/teachers/').then(r => { teachersList.value = r.data.results || r.data }).catch(() => {}),
+    api.get('/api/auth/teacher-requests/').then(r => {
+      const reqs = r.data.results || r.data
+      pendingTeacherRequest.value = reqs.find(r => r.status === 'pending') || null
+    }).catch(() => {}),
     loadMyDocs(),
   ])
   // Подтягиваем birth_date из профиля
@@ -598,9 +643,9 @@ async function loadMyDocs() {
     // Инициализируем формы для каждой ожидающей регистрации
     for (const reg of pendingRegistrations.value) {
       if (!docUploadForm.value[reg.id]) {
-        const defaultType = reg.requires_parental_consent || isMinorParticipant.value
+        const defaultType = isMinorParticipant.value
           ? 'parental_consent'
-          : reg.requires_application ? 'application' : 'other'
+          : 'application'
         docUploadForm.value[reg.id] = { doc_type: defaultType, parent_full_name: '', parent_phone: '', comment: '', file: null }
       }
     }
@@ -663,6 +708,45 @@ async function saveProfile() {
     await auth.updateProfile(profileForm.value)
     profileSaved.value = true
     setTimeout(() => profileSaved.value = false, 3000)
+  } catch {}
+}
+
+async function sendTeacherRequest() {
+  if (!selectedTeacherId.value) return
+  sendingTeacherReq.value = true
+  teacherReqError.value = ''
+  teacherReqSuccess.value = ''
+  try {
+    await api.post('/api/auth/teacher-requests/', {
+      teacher_id: selectedTeacherId.value,
+      message: teacherRequestMessage.value,
+    })
+    const reqs = (await api.get('/api/auth/teacher-requests/')).data
+    const list = reqs.results || reqs
+    pendingTeacherRequest.value = list.find(r => r.status === 'pending') || null
+    teacherReqSuccess.value = 'Заявка отправлена! Ожидайте подтверждения педагога.'
+    selectedTeacherId.value = null
+    teacherRequestMessage.value = ''
+  } catch (e) {
+    teacherReqError.value = e.response?.data?.detail || 'Ошибка отправки заявки'
+  } finally {
+    sendingTeacherReq.value = false
+  }
+}
+
+async function cancelTeacherRequest(id) {
+  try {
+    await api.delete(`/api/auth/teacher-requests/${id}/`)
+    pendingTeacherRequest.value = null
+  } catch {}
+}
+
+async function detachTeacher() {
+  if (!confirm('Отвязаться от педагога?')) return
+  try {
+    await auth.updateProfile({ ...profileForm.value, teacher_id: null })
+    profileForm.value.teacher_id = null
+    profileForm.value.teacher_name = null
   } catch {}
 }
 

@@ -107,3 +107,40 @@ class User(AbstractBaseUser, PermissionsMixin):
         if self.last_name:
             result += self.last_name[0].upper()
         return result
+
+
+class TeacherRequest(models.Model):
+    """Заявка участника на прикрепление к педагогу."""
+    STATUS_CHOICES = [
+        ('pending', 'Ожидает ответа'),
+        ('approved', 'Принята'),
+        ('rejected', 'Отклонена'),
+    ]
+
+    participant = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='teacher_requests', verbose_name='Участник',
+        limit_choices_to={'role': 'participant'},
+    )
+    teacher = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='student_requests', verbose_name='Педагог',
+        limit_choices_to={'role': 'teacher'},
+    )
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='Статус'
+    )
+    message = models.CharField(
+        max_length=500, blank=True, verbose_name='Сообщение участника'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Заявка к педагогу'
+        verbose_name_plural = 'Заявки к педагогу'
+        unique_together = ['participant', 'teacher']
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.participant} → {self.teacher} [{self.status}]'

@@ -1,3 +1,18 @@
+запуск проекта:
+cd C:\Users\user\PycharmProjects\PythonProject28\backend
+  venv\Scripts\Activate.ps1
+  python manage.py runserver
+
+cd C:\Users\user\PycharmProjects\PythonProject28\frontend  
+npm run dev
+
+http://localhost:5173
+
+
+
+
+
+
 # Школа финансовой культуры - Веб-платформа
 
 ## 📁 Структура проекта

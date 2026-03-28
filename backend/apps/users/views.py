@@ -48,9 +48,24 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        new_user = serializer.save()
+
+        if new_user.role in ('teacher', 'jury'):
+            # Уведомляем всех администраторов о новой заявке
+            try:
+                from apps.notifications.email_service import send_admin_registration_request_email
+                admins = User.objects.filter(role='admin', is_active=True)
+                for admin in admins:
+                    send_admin_registration_request_email(admin, new_user)
+            except Exception:
+                pass
+            return Response(
+                {'detail': 'Заявка принята. Ваш аккаунт будет активирован администратором в ближайшее время.', 'needs_approval': True},
+                status=status.HTTP_201_CREATED,
+            )
+
         return Response(
-            {'detail': 'Заявка принята. Ваш аккаунт будет активирован администратором в ближайшее время.'},
+            {'detail': 'Регистрация успешна! Вы можете войти в систему.', 'needs_approval': False},
             status=status.HTTP_201_CREATED,
         )
 
@@ -124,8 +139,11 @@ class UserViewSet(ModelViewSet):
         return UserAdminSerializer
 
     def perform_create(self, serializer):
-        password = self.request.data.get('password', 'changeme123')
-        user = serializer.save()
+        password = self.request.data.get('password', '').strip()
+        if not password or len(password) < 8:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'password': 'Пароль обязателен и должен содержать минимум 8 символов.'})
+        user = serializer.save(is_active=True, status='active')
         user.set_password(password)
         user.save(update_fields=['password'])
 
@@ -255,31 +273,133 @@ class MyStudentsView(APIView):
         return Response(result)
 
 
-class AddStudentView(APIView):
-    """POST /api/auth/my-students/add/ — педагог добавляет ученика по email."""
+class TeacherRequestView(APIView):
+    """
+    Заявки на прикрепление к педагогу.
+
+    Участник:
+      GET  /api/auth/teacher-requests/           — свои заявки
+      POST /api/auth/teacher-requests/           — отправить заявку педагогу
+      DELETE /api/auth/teacher-requests/{id}/    — отозвать заявку
+
+    Педагог:
+      GET  /api/auth/teacher-requests/           — входящие заявки
+      POST /api/auth/teacher-requests/{id}/approve/ — принять
+      POST /api/auth/teacher-requests/{id}/reject/  — отклонить
+    """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        if request.user.role != 'teacher':
+    def get(self, request):
+        from .models import TeacherRequest
+        user = request.user
+        if user.role == 'participant':
+            qs = TeacherRequest.objects.filter(participant=user).select_related('teacher')
+            data = [
+                {
+                    'id': r.id,
+                    'teacher_id': r.teacher.id,
+                    'teacher_name': r.teacher.full_name,
+                    'teacher_institution': r.teacher.institution,
+                    'status': r.status,
+                    'message': r.message,
+                    'created_at': r.created_at,
+                }
+                for r in qs
+            ]
+        elif user.role == 'teacher':
+            qs = TeacherRequest.objects.filter(
+                teacher=user, status='pending'
+            ).select_related('participant')
+            # Возвращаем только ФИО и учреждение — БЕЗ email
+            data = [
+                {
+                    'id': r.id,
+                    'participant_id': r.participant.id,
+                    'participant_name': r.participant.full_name,
+                    'participant_institution': r.participant.institution,
+                    'participant_grade': r.participant.grade_or_position,
+                    'message': r.message,
+                    'created_at': r.created_at,
+                }
+                for r in qs
+            ]
+        else:
             return Response(status=status.HTTP_403_FORBIDDEN)
-        email = request.data.get('email', '').strip().lower()
-        if not email:
-            return Response({'detail': 'Укажите email.'}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            student = User.objects.get(email=email, role='participant')
-        except User.DoesNotExist:
+        return Response(data)
+
+    def post(self, request):
+        from .models import TeacherRequest
+        user = request.user
+        if user.role != 'participant':
             return Response(
-                {'detail': 'Участник с таким email не найден.'},
-                status=status.HTTP_404_NOT_FOUND,
+                {'detail': 'Только участники могут отправлять заявки.'},
+                status=status.HTTP_403_FORBIDDEN,
             )
-        if student.teacher and student.teacher != request.user:
+        teacher_id = request.data.get('teacher_id')
+        message = request.data.get('message', '').strip()
+        if not teacher_id:
+            return Response({'detail': 'Укажите teacher_id.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            teacher = User.objects.get(id=teacher_id, role='teacher', status='active')
+        except User.DoesNotExist:
+            return Response({'detail': 'Педагог не найден.'}, status=status.HTTP_404_NOT_FOUND)
+        if user.teacher:
             return Response(
-                {'detail': 'Этот участник уже прикреплён к другому педагогу.'},
+                {'detail': 'Вы уже прикреплены к педагогу. Сначала отвяжитесь от текущего педагога.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        student.teacher = request.user
-        student.save(update_fields=['teacher'])
-        return Response({'detail': f'{student.full_name} добавлен в ваш список учеников.'})
+        req, created = TeacherRequest.objects.get_or_create(
+            participant=user, teacher=teacher,
+            defaults={'message': message, 'status': 'pending'},
+        )
+        if not created:
+            if req.status == 'pending':
+                return Response({'detail': 'Заявка уже отправлена и ожидает ответа.'}, status=status.HTTP_400_BAD_REQUEST)
+            # Повторная заявка после отклонения
+            req.status = 'pending'
+            req.message = message
+            req.responded_at = None
+            req.save(update_fields=['status', 'message', 'responded_at'])
+        return Response({'detail': f'Заявка отправлена педагогу {teacher.full_name}.'}, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, pk=None):
+        from .models import TeacherRequest
+        if request.user.role != 'participant':
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        try:
+            req = TeacherRequest.objects.get(id=pk, participant=request.user, status='pending')
+        except TeacherRequest.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        req.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TeacherRequestActionView(APIView):
+    """POST /api/auth/teacher-requests/{id}/approve|reject/"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk, action):
+        from .models import TeacherRequest
+        if request.user.role != 'teacher':
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        try:
+            req = TeacherRequest.objects.get(id=pk, teacher=request.user, status='pending')
+        except TeacherRequest.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if action == 'approve':
+            req.status = 'approved'
+            req.responded_at = timezone.now()
+            req.save(update_fields=['status', 'responded_at'])
+            req.participant.teacher = request.user
+            req.participant.save(update_fields=['teacher'])
+            return Response({'detail': f'{req.participant.full_name} прикреплён к вам.'})
+        elif action == 'reject':
+            req.status = 'rejected'
+            req.responded_at = timezone.now()
+            req.save(update_fields=['status', 'responded_at'])
+            return Response({'detail': 'Заявка отклонена.'})
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class RemoveStudentView(APIView):

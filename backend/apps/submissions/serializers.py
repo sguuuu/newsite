@@ -18,7 +18,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
         fields = [
-            'id', 'event', 'event_title', 'participant', 'jury',
+            'id', 'event', 'event_title', 'stage', 'participant', 'jury',
             'participant_name',
             'file', 'original_filename', 'file_size', 'file_size_kb',
             'status', 'submitted_at', 'has_evaluation',
@@ -52,7 +52,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 class SubmissionUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
-        fields = ['event', 'file']
+        fields = ['event', 'stage', 'file']
 
     def validate_file(self, value):
         max_size = 10 * 1024 * 1024  # 10 МБ

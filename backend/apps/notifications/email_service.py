@@ -118,6 +118,34 @@ def send_deadline_reminder_email(user, event, days_left: int) -> None:
           _base_template(f'⏰ Напоминание о дедлайне', body))
 
 
+def send_admin_registration_request_email(admin, new_user) -> None:
+    """Уведомление администратору о новой заявке на регистрацию (педагог/жюри)."""
+    role_names = {'teacher': 'Педагог', 'jury': 'Жюри'}
+    role_label = role_names.get(new_user.role, new_user.role)
+    body = f"""
+    <p>Здравствуйте, <strong>{admin.first_name or admin.email}</strong>!</p>
+    <p>Поступила новая заявка на регистрацию в роли <strong>{role_label}</strong>:</p>
+    <div style="background:#eff6ff;border-left:4px solid #2563eb;padding:16px 20px;border-radius:8px;margin:16px 0;">
+      <strong style="color:#1e40af;font-size:16px;">{new_user.full_name}</strong><br>
+      <span style="color:#64748b;font-size:13px;">Email: {new_user.email}</span><br>
+      <span style="color:#64748b;font-size:13px;">Учреждение: {new_user.institution or '—'}</span><br>
+      <span style="color:#64748b;font-size:13px;">Должность/класс: {new_user.grade_or_position or '—'}</span>
+    </div>
+    <p>Для подтверждения или отклонения заявки перейдите в панель администратора:</p>
+    <p style="margin-top:20px;">
+      <a href="{settings.FRONTEND_URL}/dashboard/admin"
+         style="background:#2563eb;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+        Открыть панель управления
+      </a>
+    </p>
+    """
+    _send(
+        admin.email,
+        f'Новая заявка на регистрацию: {new_user.full_name} ({role_label})',
+        _base_template(f'Заявка на регистрацию — {role_label}', body),
+    )
+
+
 def send_password_reset_email(user, reset_link: str) -> None:
     """Письмо со ссылкой для сброса пароля."""
     body = f"""

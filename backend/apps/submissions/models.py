@@ -14,6 +14,11 @@ class Submission(models.Model):
         'events.Event', on_delete=models.CASCADE,
         related_name='submissions', verbose_name='Мероприятие'
     )
+    stage = models.ForeignKey(
+        'events.EventStage', null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='submissions', verbose_name='Этап'
+    )
     participant = models.ForeignKey(
         'users.User', on_delete=models.CASCADE,
         related_name='submissions', verbose_name='Участник'
@@ -37,7 +42,7 @@ class Submission(models.Model):
     class Meta:
         verbose_name = 'Работа'
         verbose_name_plural = 'Работы'
-        unique_together = ['event', 'participant']
+        unique_together = ['event', 'stage', 'participant']
         ordering = ['-submitted_at']
 
     def __str__(self):

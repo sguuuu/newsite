@@ -65,28 +65,35 @@
             <span style="color:var(--text-gray);font-size:15px;">{{ students.length }} чел.</span>
           </div>
 
-          <!-- Добавить ученика -->
-          <div class="section-card" style="margin-bottom:28px;">
-            <h2 style="margin-bottom:14px;">Добавить ученика</h2>
-            <p style="font-size:14px;color:var(--text-gray);margin-bottom:14px;">Введите email участника, который уже зарегистрирован на платформе</p>
-            <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
-              <div style="flex:1;min-width:240px;">
-                <input v-model="addEmail" type="email" class="form-input" placeholder="email@example.com"
-                  @keydown.enter="addStudent" :style="addError ? 'border-color:#ef4444' : ''">
-                <span v-if="addError" style="color:#ef4444;font-size:12px;margin-top:4px;display:block;">{{ addError }}</span>
+          <!-- Входящие заявки -->
+          <div v-if="incomingRequests.length" class="section-card" style="margin-bottom:28px;border-left:4px solid var(--primary-blue);">
+            <h2 style="margin-bottom:14px;">Заявки на прикрепление <span style="background:#dbeafe;color:#1d4ed8;font-size:13px;padding:2px 10px;border-radius:20px;margin-left:8px;">{{ incomingRequests.length }}</span></h2>
+            <div v-for="req in incomingRequests" :key="req.id"
+                 style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#f8fafc;border-radius:10px;margin-bottom:10px;gap:12px;flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:600;color:var(--primary-dark);">{{ req.participant_name }}</div>
+                <div style="font-size:13px;color:var(--text-gray);margin-top:2px;">
+                  {{ req.participant_institution }}{{ req.participant_grade ? ' · ' + req.participant_grade : '' }}
+                </div>
+                <div v-if="req.message" style="font-size:13px;color:var(--text-gray);font-style:italic;margin-top:4px;">"{{ req.message }}"</div>
               </div>
-              <button class="btn" style="background:var(--primary-blue);color:white;white-space:nowrap;"
-                @click="addStudent" :disabled="addLoading">
-                {{ addLoading ? 'Добавляем...' : '+ Добавить' }}
-              </button>
+              <div style="display:flex;gap:8px;flex-shrink:0;">
+                <button @click="approveRequest(req.id)"
+                  style="padding:7px 16px;background:#16a34a;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;">
+                  ✓ Принять
+                </button>
+                <button @click="rejectRequest(req.id)"
+                  style="padding:7px 16px;background:none;border:1px solid #ef4444;color:#ef4444;border-radius:8px;cursor:pointer;font-size:14px;">
+                  Отклонить
+                </button>
+              </div>
             </div>
-            <div v-if="addSuccess" style="color:#065f46;background:#d1fae5;padding:10px;border-radius:8px;margin-top:12px;font-size:14px;">{{ addSuccess }}</div>
           </div>
 
           <!-- Список учеников -->
           <div v-if="!students.length" style="text-align:center;padding:60px;color:var(--text-gray);">
             <p>У вас пока нет учеников</p>
-            <p style="font-size:14px;margin-top:8px;">Добавьте ученика по email или попросите участников выбрать вас в своём профиле</p>
+            <p style="font-size:14px;margin-top:8px;">Ученики сами отправляют заявку на прикрепление через свой профиль</p>
           </div>
 
           <div v-for="s in students" :key="s.id" style="border:1px solid #e5e7eb;border-radius:12px;margin-bottom:14px;overflow:hidden;">
@@ -97,7 +104,7 @@
                 <div class="user-avatar small">{{ s.initials || 'У' }}</div>
                 <div>
                   <div style="font-weight:600;color:var(--primary-dark);">{{ s.full_name }}</div>
-                  <div style="font-size:13px;color:var(--text-gray);">{{ s.email }} {{ s.institution ? '· ' + s.institution : '' }}</div>
+                  <div style="font-size:13px;color:var(--text-gray);">{{ s.institution }}{{ s.grade_or_position ? ' · ' + s.grade_or_position : '' }}</div>
                 </div>
               </div>
               <div style="display:flex;align-items:center;gap:16px;">
@@ -208,10 +215,7 @@ const students = ref([])
 const notifications = ref([])
 const expandedStudent = ref(null)
 const saved = ref(false)
-const addEmail = ref('')
-const addLoading = ref(false)
-const addError = ref('')
-const addSuccess = ref('')
+const incomingRequests = ref([])
 
 const profileForm = ref({
   first_name: auth.user?.first_name || '',
@@ -237,6 +241,7 @@ onMounted(async () => {
   await Promise.allSettled([
     api.get('/api/auth/my-students/').then(r => { students.value = r.data }).catch(() => {}),
     api.get('/api/notifications/').then(r => { notifications.value = r.data.results || r.data }).catch(() => {}),
+    api.get('/api/auth/teacher-requests/').then(r => { incomingRequests.value = r.data.results || r.data }).catch(() => {}),
   ])
 })
 
@@ -244,22 +249,20 @@ function toggleStudent(id) {
   expandedStudent.value = expandedStudent.value === id ? null : id
 }
 
-async function addStudent() {
-  addError.value = ''
-  addSuccess.value = ''
-  if (!addEmail.value.trim()) { addError.value = 'Введите email'; return }
-  addLoading.value = true
+async function approveRequest(id) {
   try {
-    const r = await api.post('/api/auth/my-students/add/', { email: addEmail.value.trim() })
-    addSuccess.value = r.data.detail
-    addEmail.value = ''
+    await api.post(`/api/auth/teacher-requests/${id}/approve/`)
+    incomingRequests.value = incomingRequests.value.filter(r => r.id !== id)
     const res = await api.get('/api/auth/my-students/')
     students.value = res.data
-  } catch (e) {
-    addError.value = e.response?.data?.detail || 'Ошибка при добавлении'
-  } finally {
-    addLoading.value = false
-  }
+  } catch {}
+}
+
+async function rejectRequest(id) {
+  try {
+    await api.post(`/api/auth/teacher-requests/${id}/reject/`)
+    incomingRequests.value = incomingRequests.value.filter(r => r.id !== id)
+  } catch {}
 }
 
 async function removeStudent(id) {

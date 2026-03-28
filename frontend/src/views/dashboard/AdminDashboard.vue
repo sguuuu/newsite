@@ -82,6 +82,29 @@
             </div>
           </div>
 
+          <!-- Заявки на регистрацию (педагоги и жюри) -->
+          <div v-if="pendingUsers.length > 0" style="background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+              <svg class="icon" style="color:#b45309;flex-shrink:0;" aria-hidden="true"><use href="#ic-clock"/></svg>
+              <h3 style="margin:0;color:#b45309;">Новые заявки на регистрацию — требуется проверка ({{ pendingUsers.length }})</h3>
+            </div>
+            <div v-for="u in pendingUsers" :key="u.id" style="background:white;border-radius:8px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border:1px solid #e5e7eb;">
+              <div>
+                <div style="font-weight:600;font-size:15px;">{{ u.full_name || u.email }}</div>
+                <div style="color:#64748b;font-size:13px;margin-top:3px;">
+                  <span class="role-badge" :class="u.role">{{ roleLabel(u.role) }}</span>
+                  &nbsp;·&nbsp;{{ u.email }}
+                  <template v-if="u.institution">&nbsp;·&nbsp;{{ u.institution }}</template>
+                </div>
+                <div style="color:#94a3b8;font-size:12px;margin-top:4px;">Зарегистрировался {{ timeAgo(u.date_joined) }}</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-shrink:0;">
+                <button class="btn-small btn-primary" @click="approveUser(u.id)" style="font-size:13px;padding:7px 16px;">✓ Одобрить</button>
+                <button class="btn-small btn-danger" @click="rejectUser(u.id)" style="font-size:13px;padding:7px 16px;">✕ Отклонить</button>
+              </div>
+            </div>
+          </div>
+
           <!-- Role distribution + Popular events -->
           <div class="section-grid">
 
@@ -239,6 +262,13 @@
               </div>
               <div class="event-actions">
                 <button class="btn-small btn-outline" @click="openEditEvent(ev)">Редактировать</button>
+                <select class="btn-small btn-outline" :value="ev.status" @change="changeEventStatus(ev, $event.target.value)" style="cursor:pointer;">
+                  <option value="draft">Черновик</option>
+                  <option value="upcoming">Предстоящее</option>
+                  <option value="active">Активное</option>
+                  <option value="completed">Завершено</option>
+                  <option value="cancelled">Отменено</option>
+                </select>
                 <button class="btn-small btn-outline" @click="openStagesModal(ev)" style="border-color:var(--primary-blue);color:var(--primary-blue);">Этапы и задания</button>
                 <button class="btn-small btn-danger" @click="deleteEvent(ev.id)">Удалить</button>
               </div>
@@ -598,6 +628,12 @@
             <div><div style="font-weight:600;font-size:14px;">Требовать заявку на участие</div><div style="font-size:13px;color:var(--text-gray);">Участник должен загрузить заявку/анкету</div></div>
           </div>
         </div>
+        <div class="form-row" style="margin-top:4px;">
+          <div class="form-group" style="flex-direction:row;align-items:center;gap:12px;">
+            <label class="switch"><input type="checkbox" v-model="eventForm.sequential_stages"><span class="slider"></span></label>
+            <div><div style="font-weight:600;font-size:14px;">Последовательный доступ к этапам</div><div style="font-size:13px;color:var(--text-gray);">Участник открывает следующий этап только после сдачи предыдущего и в рамках его дат</div></div>
+          </div>
+        </div>
         <p v-if="modalError" class="modal-error">{{ modalError }}</p>
         <div class="modal-actions">
           <button type="button" class="btn-modal-cancel" @click="closeEventModal">Отмена</button>
@@ -811,7 +847,13 @@
         <div v-if="!editingUser" class="form-row">
           <div class="form-group">
             <label>Пароль *</label>
-            <input v-model="userForm.password" type="password" class="form-input" required placeholder="Минимум 8 символов">
+            <div style="position:relative;">
+              <input v-model="userForm.password" :type="showUserPassword ? 'text' : 'password'" class="form-input" required placeholder="Минимум 8 символов" style="padding-right:44px;">
+              <button type="button" @click="showUserPassword = !showUserPassword" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-gray);padding:4px;">
+                {{ showUserPassword ? '🙈' : '👁' }}
+              </button>
+            </div>
+            <span v-if="userForm.password && userForm.password.length < 8" style="color:#ef4444;font-size:12px;margin-top:4px;display:block;">Минимум 8 символов</span>
           </div>
         </div>
         <p v-if="modalError" class="modal-error">{{ modalError }}</p>
@@ -838,9 +880,10 @@ const auth = useAuthStore()
 const activeTab = ref('overview')
 
 const pendingRegsCount = ref(0)
+const pendingUsers = computed(() => users.value.filter(u => u.status === 'pending'))
 const tabs = computed(() => [
   { id: 'overview', label: 'Обзор', icon: 'chart-bar' },
-  { id: 'users', label: 'Пользователи', icon: 'users' },
+  { id: 'users', label: 'Пользователи', icon: 'users', badge: pendingUsers.value.length || null },
   { id: 'events', label: 'Мероприятия', icon: 'calendar' },
   { id: 'applications', label: 'Заявки', icon: 'clipboard', badge: pendingRegsCount.value || null },
   { id: 'jury', label: 'Жюри', icon: 'scale' },
@@ -1122,6 +1165,7 @@ const modalError = ref('')
 const showUserModal = ref(false)
 const editingUser = ref(null)
 const userForm = ref({})
+const showUserPassword = ref(false)
 
 onMounted(async () => {
   await Promise.allSettled([
@@ -1206,11 +1250,30 @@ async function approveUser(id) {
   }
 }
 
+async function rejectUser(id) {
+  if (!confirm('Отклонить заявку и удалить аккаунт?')) return
+  try {
+    await api.delete(`/api/auth/users/${id}/`)
+    users.value = users.value.filter(u => u.id !== id)
+    stats.value.pending_users = Math.max(0, (stats.value.pending_users || 1) - 1)
+  } catch (e) {
+    alert(e.response?.data?.detail || 'Ошибка при отклонении')
+  }
+}
+
 async function deleteUser(id) {
   if (!confirm('Удалить пользователя?')) return
   try {
     await api.delete(`/api/auth/users/${id}/`)
     users.value = users.value.filter(u => u.id !== id)
+  } catch {}
+}
+
+async function changeEventStatus(ev, status) {
+  try {
+    const res = await api.patch(`/api/events/${ev.id}/`, { status })
+    const idx = adminEvents.value.findIndex(e => e.id === ev.id)
+    if (idx !== -1) adminEvents.value[idx] = { ...adminEvents.value[idx], ...res.data }
   } catch {}
 }
 
@@ -1249,7 +1312,7 @@ async function removeAssignment(id) {
 // ---- Event modal ----
 function openCreateEvent() {
   editingEvent.value = null
-  eventForm.value = { title: '', description: '', short_description: '', event_type: 'olympiad', format: 'online', status: 'draft', start_date: '', end_date: '', registration_deadline: '', max_participants: null, age_min: null, age_max: null, requires_parental_consent: false, requires_application: false }
+  eventForm.value = { title: '', description: '', short_description: '', event_type: 'olympiad', format: 'online', status: 'draft', start_date: '', end_date: '', registration_deadline: '', max_participants: null, age_min: null, age_max: null, requires_parental_consent: false, requires_application: false, sequential_stages: false }
   modalError.value = ''
   showEventModal.value = true
 }
@@ -1303,6 +1366,10 @@ async function openEditUser(u) {
 function closeUserModal() { showUserModal.value = false }
 
 async function saveUser() {
+  if (!editingUser.value && (!userForm.value.password || userForm.value.password.length < 8)) {
+    modalError.value = 'Пароль обязателен и должен содержать минимум 8 символов.'
+    return
+  }
   modalLoading.value = true
   modalError.value = ''
   try {

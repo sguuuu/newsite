@@ -21,8 +21,12 @@ urlpatterns = [
     # Teachers & students
     path('teachers/', views.TeacherListView.as_view(), name='teacher-list'),
     path('my-students/', views.MyStudentsView.as_view(), name='my-students'),
-    path('my-students/add/', views.AddStudentView.as_view(), name='add-student'),
     path('my-students/<int:pk>/remove/', views.RemoveStudentView.as_view(), name='remove-student'),
+
+    # Teacher requests (participant → teacher)
+    path('teacher-requests/', views.TeacherRequestView.as_view(), name='teacher-requests'),
+    path('teacher-requests/<int:pk>/', views.TeacherRequestView.as_view(), name='teacher-request-delete'),
+    path('teacher-requests/<int:pk>/<str:action>/', views.TeacherRequestActionView.as_view(), name='teacher-request-action'),
 
     # Users CRUD (admin)
     path('', include(router.urls)),

@@ -71,7 +71,12 @@
               </div>
               <div class="form-group">
                 <label>Пароль</label>
-                <input v-model="loginForm.password" type="password" class="form-input" placeholder="Введите пароль" required>
+                <div style="position:relative;">
+                  <input v-model="loginForm.password" :type="showLoginPassword ? 'text' : 'password'" class="form-input" placeholder="Введите пароль" style="padding-right:44px" required>
+                  <button type="button" @click="showLoginPassword = !showLoginPassword" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-gray);padding:4px;">
+                    {{ showLoginPassword ? '🙈' : '👁' }}
+                  </button>
+                </div>
               </div>
               <div v-if="error" style="color:#ef4444; font-size:14px; margin-bottom:15px; padding: 10px; background:#fef2f2; border-radius:8px;">{{ error }}</div>
               <button type="submit" class="btn btn-primary" style="width:100%; background: var(--primary-blue); color: white;" :disabled="loginLoading">
@@ -127,19 +132,36 @@
                 <label>Учреждение</label>
                 <input v-model="regForm.institution" type="text" class="form-input" placeholder="Школа №1, г. Сочи">
               </div>
+              <div v-if="['participant', 'teacher'].includes(regForm.role)" class="form-group" style="margin-bottom:0;">
+                <label :style="fieldErrors.birth_date ? 'color:#ef4444' : ''">Дата рождения *</label>
+                <input v-model="regForm.birth_date" type="date" class="form-input"
+                  :style="fieldErrors.birth_date ? 'border-color:#ef4444' : ''"
+                  @input="clearFieldError('birth_date')">
+                <span style="color:#ef4444;font-size:12px;margin-top:4px;display:block;min-height:18px;">{{ fieldErrors.birth_date || '' }}</span>
+              </div>
               <div class="form-row">
                 <div class="form-group" style="margin-bottom:0;">
                   <label :style="fieldErrors.password ? 'color:#ef4444' : ''">Пароль</label>
-                  <input v-model="regForm.password" type="password" class="form-input" placeholder="Минимум 8 символов"
-                    :style="fieldErrors.password ? 'border-color:#ef4444' : ''"
-                    @input="clearFieldError('password')">
+                  <div style="position:relative;">
+                    <input v-model="regForm.password" :type="showPassword ? 'text' : 'password'" class="form-input" placeholder="Минимум 8 символов"
+                      :style="fieldErrors.password ? 'border-color:#ef4444;padding-right:44px' : 'padding-right:44px'"
+                      @input="clearFieldError('password')">
+                    <button type="button" @click="showPassword = !showPassword" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-gray);padding:4px;">
+                      {{ showPassword ? '🙈' : '👁' }}
+                    </button>
+                  </div>
                   <span style="color:#ef4444;font-size:12px;margin-top:4px;display:block;min-height:18px;">{{ fieldErrors.password || '' }}</span>
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
                   <label :style="fieldErrors.password_confirm ? 'color:#ef4444' : ''">Повторить пароль</label>
-                  <input v-model="regForm.password_confirm" type="password" class="form-input" placeholder="Повторите пароль"
-                    :style="fieldErrors.password_confirm ? 'border-color:#ef4444' : ''"
-                    @input="clearFieldError('password_confirm')">
+                  <div style="position:relative;">
+                    <input v-model="regForm.password_confirm" :type="showPasswordConfirm ? 'text' : 'password'" class="form-input" placeholder="Повторите пароль"
+                      :style="fieldErrors.password_confirm ? 'border-color:#ef4444;padding-right:44px' : 'padding-right:44px'"
+                      @input="clearFieldError('password_confirm')">
+                    <button type="button" @click="showPasswordConfirm = !showPasswordConfirm" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-gray);padding:4px;">
+                      {{ showPasswordConfirm ? '🙈' : '👁' }}
+                    </button>
+                  </div>
                   <span style="color:#ef4444;font-size:12px;margin-top:4px;display:block;min-height:18px;">{{ fieldErrors.password_confirm ? 'Обязательное поле' : '' }}</span>
                 </div>
               </div>
@@ -196,7 +218,10 @@ const resetErrors = ref({})
 const resetConfirmForm = ref({ new_password: '', confirm: '' })
 
 const loginForm = ref({ email: '', password: '' })
-const regForm = ref({ role: 'participant', first_name: '', last_name: '', patronymic: '', email: '', institution: '', password: '', password_confirm: '', consent_given: false })
+const regForm = ref({ role: 'participant', first_name: '', last_name: '', patronymic: '', email: '', institution: '', birth_date: '', password: '', password_confirm: '', consent_given: false })
+const showLoginPassword = ref(false)
+const showPassword = ref(false)
+const showPasswordConfirm = ref(false)
 const fieldErrors = ref({})
 
 const roles = [
@@ -255,6 +280,7 @@ async function handleRegister() {
   else if (f.password.length < 8) { fieldErrors.value.password = 'Минимум 8 символов'; hasErrors = true }
   if (!f.password_confirm) { fieldErrors.value.password_confirm = true; hasErrors = true }
   if (!f.consent_given) { fieldErrors.value.consent_given = true; hasErrors = true }
+  if (['participant', 'teacher'].includes(f.role) && !f.birth_date) { fieldErrors.value.birth_date = 'Обязательное поле'; hasErrors = true }
   if (hasErrors) return
 
   if (f.password !== f.password_confirm) {
@@ -264,14 +290,26 @@ async function handleRegister() {
 
   regLoading.value = true
   try {
-    await auth.register(f)
-    success.value = 'Регистрация успешна! Войдите в систему.'
-    activeTab.value = 'login'
-    loginForm.value.email = f.email
+    const payload = { ...f, birth_date: f.birth_date || null }
+    const resp = await auth.register(payload)
+    const data = resp.data
+    success.value = data.detail || 'Регистрация успешна!'
+    if (!data.needs_approval) {
+      // Участник — сразу переводим на вход
+      activeTab.value = 'login'
+      loginForm.value.email = f.email
+    }
+    // Педагог/жюри — остаёмся на форме, показываем сообщение об ожидании
   } catch (e) {
     const data = e.response?.data
     if (data?.email) { fieldErrors.value.email = data.email[0]; return }
-    error.value = typeof data === 'object' ? Object.values(data).flat().join(' ') : 'Ошибка регистрации'
+    if (data && typeof data === 'object') {
+      error.value = data.detail || Object.values(data).flat().join(' ')
+    } else if (!e.response) {
+      error.value = 'Нет связи с сервером. Убедитесь, что сервер запущен.'
+    } else {
+      error.value = 'Ошибка регистрации. Попробуйте снова.'
+    }
   } finally {
     regLoading.value = false
   }
